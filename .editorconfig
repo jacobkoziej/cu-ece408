@@ -13,6 +13,10 @@ indent_size              = tab
 indent_style = space
 indent_size  = 2
 
+[*.m]
+indent_style = space
+indent_size  = 4
+
 [{*.sh,.envrc}]
 binary_next_line    = true
 functiion_next_line = true
