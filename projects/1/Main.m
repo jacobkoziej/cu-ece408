@@ -71,12 +71,11 @@ legend('Theoretical', 'Simulated');
 
 %% part 1b
 config.channel          = [1.0, 0.2, 0.4];
-config.learning_rate    = 1e-2;
 config.m                = 2;
 config.reference_tap    = 1;
 config.snr              = 12;
 config.tap_weights      = 3;
-config.training_symbols = 128;
+config.training_symbols = 50;
 
 k = nextpow2(config.m);
 ebno = config.snr + 10 * log10(SPS / k);
@@ -84,8 +83,8 @@ ebno = config.snr + 10 * log10(SPS / k);
 
 bers = zeros(1, ITERATIONS);
 sers = zeros(1, ITERATIONS);
-bers_lms = zeros(1, ITERATIONS);
-sers_lms = zeros(1, ITERATIONS);
+bers_rls = zeros(1, ITERATIONS);
+sers_rls = zeros(1, ITERATIONS);
 
 for i = 1:ITERATIONS
     [ber, ser] = part1b(config, false);
@@ -95,8 +94,8 @@ for i = 1:ITERATIONS
 
     [ber, ser] = part1b(config, true);
 
-    bers_lms(i) = ber;
-    sers_lms(i) = ser;
+    bers_rls(i) = ber;
+    sers_rls(i) = ser;
 end
 
 snr = config.snr;
@@ -104,8 +103,8 @@ snr = config.snr;
 ber = mean(bers);
 ser = mean(sers);
 
-ber_lms = mean(bers_lms);
-ser_lms = mean(sers_lms);
+ber_rls = mean(bers_rls);
+ser_rls = mean(sers_rls);
 
 display('part 1b');
 display(snr);
