@@ -12,7 +12,7 @@ rng(0x2b708595);
 %% parameters
 ITERATIONS = 16;
 SNRS       = 128;
-SYMBOLS    = 1024;
+SYMBOLS    = 1000;
 SPS        = 1;
 
 snrs = linspace(0, 16, SNRS);
