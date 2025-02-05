@@ -3,7 +3,7 @@
 % part1b.m -- part 1b
 % Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
-function [ber, ser] = part1b(config, enable_lms)
+function [ber, ser, err, h] = part1b(config, enable_rls)
     M = config.m;
 
     eqrls = comm.LinearEqualizer( ...

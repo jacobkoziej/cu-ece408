@@ -85,6 +85,8 @@ bers = zeros(1, ITERATIONS);
 sers = zeros(1, ITERATIONS);
 bers_rls = zeros(1, ITERATIONS);
 sers_rls = zeros(1, ITERATIONS);
+errs = zeros(ITERATIONS, config.symbols);
+tap_weights = zeros(ITERATIONS, config.tap_weights);
 
 for i = 1:ITERATIONS
     [ber, ser] = part1b(config, false);
@@ -92,25 +94,38 @@ for i = 1:ITERATIONS
     bers(i) = ber;
     sers(i) = ser;
 
-    [ber, ser] = part1b(config, true);
+    [ber, ser, err, h] = part1b(config, true);
 
     bers_rls(i) = ber;
     sers_rls(i) = ser;
+    errs(i, :) = err;
+    tap_weights(i, :) = h;
 end
 
 snr = config.snr;
+channel = config.channel;
 
 ber = mean(bers);
 ser = mean(sers);
 
 ber_rls = mean(bers_rls);
 ser_rls = mean(sers_rls);
+errs = mean(errs);
+tap_weights = mean(tap_weights);
 
 display('part 1b');
 display(snr);
 display(ber_theoretical);
-display(ber);
-display(ber_lms);
 display(ser_theoretical);
+display(ber);
 display(ser);
-display(ser_lms);
+display(channel);
+display(tap_weights);
+display(ber_rls);
+display(ser_rls);
+
+figure;
+plot(abs(err));
+title('Part 1.b');
+xlabel('Symbol');
+ylabel('|Reference Tap Error|');
