@@ -4,18 +4,19 @@
 % Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
 function [ber, ser, err, h] = part2(config)
-    M = 2;
+    M = config.m;
+    K = nextpow2(M);
 
     m = 5;
     n = 2^m - 1;
     k = n - 2;
 
     training_symbols = config.training_symbols;
-    bits = config.symbols - training_symbols;
+    bits = (config.symbols - training_symbols) * K;
 
     symbols = floor(bits / (m * n)) * k;
 
-    s = randi(M, 1, symbols * m) - 1;
+    s = randi(2, 1, symbols * m) - 1;
 
     tx = reshape(s, m, []);
     tx = bit2int(tx, m);
@@ -27,7 +28,8 @@ function [ber, ser, err, h] = part2(config)
     tx = tx(1:end);
 
     tx = int2bit(tx, m);
-    tx = tx(1:end);
+    tx = reshape(tx, K, []);
+    tx = bit2int(tx, K);
 
     training_symbols = training_symbols + ...
         (config.symbols - training_symbols - numel(tx));
@@ -54,12 +56,14 @@ function [ber, ser, err, h] = part2(config)
     signal_symbols(1:training_symbols) = false;
 
     r = r(signal_symbols);
+    r = int2bit(r, K);
+
     r = reshape(r, m, []);
     r = bit2int(r, m);
     r = reshape(r, [], n);
     r = gf(r, m);
 
-    [r, cnumerr] = rsdec(r, n, k);
+    [r, ~] = rsdec(r, n, k);
 
     r = double(r.x);
     r = r(1:end);
