@@ -129,3 +129,43 @@ plot(abs(err));
 title('Part 1.b');
 xlabel('Symbol');
 ylabel('|Reference Tap Error|');
+
+%% part 2
+config.training_symbols = 16;
+config.tap_weights = 3;
+config.reference_tap = 1;
+config.snr = 12;
+
+bers = zeros(1, ITERATIONS);
+sers = zeros(1, ITERATIONS);
+errs = zeros(ITERATIONS, config.symbols);
+tap_weights = zeros(ITERATIONS, config.tap_weights);
+
+for i = 1:ITERATIONS
+    [ber, ser, err, h] = part2(config);
+
+    bers(i) = ber;
+    sers(i) = ser;
+    errs(i, :) = err;
+    tap_weights(i, :) = h;
+end
+
+snr = config.snr;
+channel = config.channel;
+
+ber = mean(bers);
+ser = mean(sers);
+err = mean(errs);
+tap_weights = mean(tap_weights);
+
+display('Part 2');
+display(snr);
+display(ber);
+display(ser);
+display(channel);
+display(tap_weights);
+figure;
+plot(abs(err));
+title('Part 2');
+xlabel('Symbol');
+ylabel('|Reference Tap Error|');
