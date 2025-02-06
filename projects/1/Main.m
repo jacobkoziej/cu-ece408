@@ -113,7 +113,7 @@ ser_rls = mean(sers_rls);
 errs = mean(errs);
 tap_weights = mean(tap_weights);
 
-display('part 1b');
+display('Part 1b');
 display(snr);
 display(ber_theoretical);
 display(ser_theoretical);
