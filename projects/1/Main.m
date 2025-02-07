@@ -9,9 +9,9 @@ close all;
 
 rng(0x2b708595);
 
-%% parameters
-ITERATIONS = 16;
-SNRS       = 128;
+%% Parameters
+ITERATIONS = 1024;
+SNRS       = 64;
 SYMBOLS    = 1000;
 SPS        = 1;
 
