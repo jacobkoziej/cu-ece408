@@ -131,6 +131,7 @@ xlabel('Symbol');
 ylabel('|Reference Tap Error|');
 
 %% part 2
+config.m = 4;
 config.training_symbols = 16;
 config.tap_weights = 3;
 config.reference_tap = 1;
