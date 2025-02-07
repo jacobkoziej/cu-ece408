@@ -3,7 +3,7 @@
 % part2.m -- part 2
 % Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
-function [ber, ser, err, h] = part2(config)
+function [ber, ser, err, h, bitrate] = part2(config)
     M = 2;
     K = nextpow2(M);
 
@@ -72,4 +72,6 @@ function [ber, ser, err, h] = part2(config)
 
     [~, ber] = biterr(s, r);
     [~, ser] = symerr(s, r);
+
+    bitrate = (m * symbols) / config.symbols;
 end

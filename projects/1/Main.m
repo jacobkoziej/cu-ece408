@@ -190,7 +190,7 @@ tap_weights = zeros(ITERATIONS, config.tap_weights);
 
 %%% Simulation Loop
 for i = 1:ITERATIONS
-    [ber, ser, err, h] = part2(config);
+    [ber, ser, err, h, bitrate] = part2(config);
 
     bers(i) = ber;
     sers(i) = ser;
@@ -209,6 +209,7 @@ tap_weights = mean(tap_weights);
 %%% Results
 display('Part 2');
 display(snr);
+display(bitrate);
 display(ber);
 display(ser);
 display(channel);
