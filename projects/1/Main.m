@@ -15,9 +15,9 @@ SNRS       = 128;
 SYMBOLS    = 1000;
 SPS        = 1;
 
+%% Part 1.a (Theoretical 16-QAM)
 snrs = linspace(0, 16, SNRS);
 
-%% part 1a
 bers = zeros(ITERATIONS, SNRS);
 sers = zeros(ITERATIONS, SNRS);
 
@@ -30,6 +30,10 @@ config.symbols = SYMBOLS;
 
 k = nextpow2(config.m);
 
+%%% Contents of |part1a.m|
+% <include>part1a.m</include>
+
+%%% Simulation Loop
 for i = 1:SNRS
     config.snr = snrs(i);
 
@@ -50,6 +54,7 @@ end
 bers = mean(bers);
 sers = mean(sers);
 
+%%% Results
 figure;
 sgtitle('Part 1.a');
 
@@ -69,7 +74,7 @@ ylabel('SER');
 xlabel('SNR');
 legend('Theoretical', 'Simulated');
 
-%% part 1b
+%% Part 1.b (Equalized BPSK Over Moderate ISI Channel)
 config.channel          = [1.0, 0.2, 0.4];
 config.m                = 2;
 config.reference_tap    = 1;
@@ -88,6 +93,28 @@ sers_rls = zeros(1, ITERATIONS);
 errs = zeros(ITERATIONS, config.symbols);
 tap_weights = zeros(ITERATIONS, config.tap_weights);
 
+%%% Equalization Approach
+% To equalize the Inter-Symbol Interference (ISI) channel, I've opted to
+% apply the Recursive Least Squares (RLS). Initially, I went with Least
+% Mean Squares (LMS) algorithm without much success. I started with a
+% learning rate of 1e-2, 5 tap weights, a center reference tap, and 64
+% training symbols. Unsurprisingly, this approach did not work. To
+% resolve this, I changed the number of taps to match that of the
+% channel and set the reference tap to be the first element. This
+% yielded better results, but looking at the learning curve and
+% generated tap weights, it was obvious that the amount of training
+% symbols was not sufficient. After cranking up the training symbols to
+% 256, I finally observed a BER below 1e-4. To further improve my
+% equalization, I took advantage of RLS's much faster convergence since
+% it approximates the signal's auto-correlation matrix as opposed to
+% relying on gradient descent. It turns out that using a conservative
+% forgetting factor of |0.99| yielded great performance with as few as
+% 50 training symbols!
+
+%%% Contents of |part1b.m|
+% <include>part1b.m</include>
+
+%%% Simulation Loop
 for i = 1:ITERATIONS
     [ber, ser] = part1b(config, false);
 
@@ -113,6 +140,7 @@ ser_rls = mean(sers_rls);
 errs = mean(errs);
 tap_weights = mean(tap_weights);
 
+%%% Results
 display('Part 1b');
 display(snr);
 display(ber_theoretical);
@@ -130,7 +158,7 @@ title('Part 1.b');
 xlabel('Symbol');
 ylabel('|Reference Tap Error|');
 
-%% part 2
+%% Part 2 (Error-Corrected Equalized QPSK Over Moderate ISI Channel)
 config.m = 4;
 config.training_symbols = 16;
 config.tap_weights = 3;
@@ -142,6 +170,29 @@ sers = zeros(1, ITERATIONS);
 errs = zeros(ITERATIONS, config.symbols);
 tap_weights = zeros(ITERATIONS, config.tap_weights);
 
+%%% Contents of |part2.m|
+% <include>part2.m</include>
+
+%%% Error-Correction Approach
+% To error correct the equalized channel, I've opted to apply
+% Reed-Solomon codes to my symbol stream. I went with this approach
+% mainly because I wanted to learn more about error correction codes.
+% Reed-Solomon takes advantage of modulo-arithmetic over GF(N), making
+% it especially fast to implement in hardware, and great for real-time
+% applications like communication links. To implement this, I first
+% calculated the number of bits I could transmit over a packet when
+% taking account of the training sequence along with additional
+% error-correction data. Once calculated, I generated a bitstream and
+% encoded this stream with Reed-Solomon over GF(4). Then I padded the
+% packet's training sequence with additional symbols that would not fit
+% into the packet with the encoding scheme. On the receiver end I
+% performed the inverse of the original process to retrieve the
+% transmitted bits. Originally, I only encoded with Reed-Solomon for
+% BPSK, but after achieving a BER of nearly zero, I decided to push my
+% luck with QPSK and still maintained a near-zero BER but now doubled
+% the bandwidth.
+
+%%% Simulation Loop
 for i = 1:ITERATIONS
     [ber, ser, err, h] = part2(config);
 
@@ -159,6 +210,7 @@ ser = mean(sers);
 err = mean(errs);
 tap_weights = mean(tap_weights);
 
+%%% Results
 display('Part 2');
 display(snr);
 display(ber);
