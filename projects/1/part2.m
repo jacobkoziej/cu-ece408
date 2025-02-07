@@ -4,10 +4,10 @@
 % Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
 function [ber, ser, err, h] = part2(config)
-    M = config.m;
+    M = 2;
     K = nextpow2(M);
 
-    m = M;
+    m = 5;
     n = 2^m - 1;
     k = n - 2;
 
@@ -36,13 +36,13 @@ function [ber, ser, err, h] = part2(config)
 
     tx = [randi(M, 1, training_symbols) - 1, tx];
 
-    tx = pskmod(tx, M, pi / M);
+    tx = pskmod(tx, M);
     rx = filter(config.channel, 1, tx);
     rx = awgn(rx, config.snr, 'measured');
 
     eqrls = comm.LinearEqualizer( ...
                                  'Algorithm', 'RLS', ...
-                                 'Constellation', pskmod(0:(M - 1), M, pi / M), ...
+                                 'Constellation', pskmod(0:(M - 1), M), ...
                                  'ForgettingFactor', 0.99, ...
                                  'NumTaps', config.tap_weights, ...
                                  'ReferenceTap', config.reference_tap ...
@@ -50,7 +50,7 @@ function [ber, ser, err, h] = part2(config)
 
     [r, err, h] = eqrls(rx.', tx(1:training_symbols).');
 
-    r = pskdemod(r.', M, pi / M);
+    r = pskdemod(r.', M);
 
     signal_symbols = true(size(r));
     signal_symbols(1:training_symbols) = false;

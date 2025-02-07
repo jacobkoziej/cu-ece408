@@ -158,8 +158,7 @@ title('Part 1.b');
 xlabel('Symbol');
 ylabel('|Reference Tap Error|');
 
-%% Part 2 (Error-Corrected Equalized QPSK Over Moderate ISI Channel)
-config.m = 4;
+%% Part 2 (Error-Corrected Equalized BPSK Over Moderate ISI Channel)
 config.training_symbols = 16;
 config.tap_weights = 3;
 config.reference_tap = 1;
@@ -174,7 +173,7 @@ tap_weights = zeros(ITERATIONS, config.tap_weights);
 % <include>part2.m</include>
 
 %%% Error-Correction Approach
-% To error correct the equalized channel, I've opted to apply
+% To error correct the BPSK equalized channel, I've opted to apply
 % Reed-Solomon codes to my symbol stream. I went with this approach
 % mainly because I wanted to learn more about error correction codes.
 % Reed-Solomon takes advantage of modulo-arithmetic over GF(N), making
@@ -183,14 +182,11 @@ tap_weights = zeros(ITERATIONS, config.tap_weights);
 % calculated the number of bits I could transmit over a packet when
 % taking account of the training sequence along with additional
 % error-correction data. Once calculated, I generated a bitstream and
-% encoded this stream with Reed-Solomon over GF(4). Then I padded the
+% encoded this stream with Reed-Solomon over GF(5). Then I padded the
 % packet's training sequence with additional symbols that would not fit
 % into the packet with the encoding scheme. On the receiver end I
 % performed the inverse of the original process to retrieve the
-% transmitted bits. Originally, I only encoded with Reed-Solomon for
-% BPSK, but after achieving a BER of nearly zero, I decided to push my
-% luck with QPSK and still maintained a near-zero BER but now doubled
-% the bandwidth.
+% transmitted bits, achieving a near zero BER.
 
 %%% Simulation Loop
 for i = 1:ITERATIONS
