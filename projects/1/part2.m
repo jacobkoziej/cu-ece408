@@ -11,6 +11,8 @@ function [ber, ser, err, h, bitrate] = part2(config)
     n = 2^m - 1;
     k = n - 2;
 
+    % calculate transmission bits, accounting
+    % for training symbols and error-correction
     training_symbols = config.training_symbols;
     bits = (config.symbols - training_symbols) * K;
 
@@ -18,15 +20,18 @@ function [ber, ser, err, h, bitrate] = part2(config)
 
     s = randi(2, 1, symbols * m) - 1;
 
+    % generate symbol stream from bitstream
     tx = reshape(s, m, []);
     tx = bit2int(tx, m);
 
+    % encode symbols with Reed-Solomon
     tx = reshape(tx, [], k);
     tx = gf(tx, m);
     tx = rsenc(tx, n, k);
     tx = double(tx.x);
     tx = tx(1:end);
 
+    % encode Reed-Solomon as symbol stream
     tx = int2bit(tx, m);
     tx = reshape(tx, K, []);
     tx = bit2int(tx, K);
@@ -55,6 +60,7 @@ function [ber, ser, err, h, bitrate] = part2(config)
     signal_symbols = true(size(r));
     signal_symbols(1:training_symbols) = false;
 
+    % serialize symbols and decode Reed-Solomon stream
     r = r(signal_symbols);
     r = int2bit(r, K);
 
