@@ -12,6 +12,9 @@ includes = [
 
 [formatter.mh_style]
 command = "mh_style"
+options = [
+  "--fix",
+]
 includes = [
   "*.m",
 ]
