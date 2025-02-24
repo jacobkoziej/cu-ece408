@@ -18,7 +18,7 @@ function r = rayleigh_channel(f_m, n)
 end
 
 function g = gen_noise(n)
-    g = rand(1, n) + 1j * rand(1, n);
+    g = randn(1, n) + 1j * randn(1, n);
     g = [fliplr(conj(g)), g];
 end
 
