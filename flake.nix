@@ -18,6 +18,13 @@
         };
 
         inherit (pkgs) lib;
+        inherit (pkgs) python3;
+
+        python3-pkgs = python3.withPackages (
+          ps: with ps; [
+            miss-hit
+          ]
+        );
 
       in
       {
@@ -30,6 +37,7 @@
             packages = with pkgs; [
               mdformat
               pre-commit
+              python3-pkgs
               shfmt
               toml-sort
               treefmt2

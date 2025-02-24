@@ -4,6 +4,18 @@ includes = [
   "*.md",
 ]
 
+[formatter.mh_lint]
+command = "mh_lint"
+includes = [
+  "*.m",
+]
+
+[formatter.mh_style]
+command = "mh_style"
+includes = [
+  "*.m",
+]
+
 [formatter.nix]
 command = "nix"
 options = [
@@ -49,4 +61,5 @@ excludes = [
   "*.lock",
   ".editorconfig",
   "LICENSE.md",
+  "miss_hit.cfg",
 ]
