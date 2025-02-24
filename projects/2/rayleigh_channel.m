@@ -11,8 +11,8 @@ function r = rayleigh_channel(f_m, n)
 
     sqrt_spectrum = sqrt(fading_spectrum(f_m, n));
 
-    r_i = ifft(fftshift(g_i .* sqrt_spectrum)).^2;
-    r_q = ifft(fftshift(g_q .* sqrt_spectrum)).^2;
+    r_i = ifft(fftshift(g_i .* sqrt_spectrum), 'symmetric').^2;
+    r_q = ifft(fftshift(g_q .* sqrt_spectrum), 'symmetric').^2;
 
     r = sqrt(r_i.^2 + r_q.^2);
 end
