@@ -3,7 +3,7 @@
 % alamouti.m -- alamouti diversity technique
 % Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
-function s_hat = alamouti(s, h, n)
+function s_hat = alamouti(s, h, snr)
     % we know that
     %
     % r_0 = h_1 * s_1       + h_0 * s_0       + n_0
@@ -37,7 +37,7 @@ function s_hat = alamouti(s, h, n)
     h             = upsample(h.', 2).';
     h(:, 2:2:end) = h(:, 1:2:end - 1);
 
-    r = sum(s .* h) + n;
+    r = awgn(sum(s .* h), snr);
 
     % r = [r_0,       r_0,       r_2,       r_2,       ...]
     %     [conj(r_1), conj(r_1), conj(r_3), conj(r_3), ...]
