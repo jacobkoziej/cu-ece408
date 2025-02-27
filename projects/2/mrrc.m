@@ -5,5 +5,5 @@
 
 function s_hat = mrrc(s, h, snr)
     r = awgn(s .* h, snr);
-    s_hat = sum(r .* conj(h));
+    s_hat = sum(r .* conj(h), 1);
 end
