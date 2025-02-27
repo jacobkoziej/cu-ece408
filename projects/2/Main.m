@@ -101,6 +101,15 @@ legend({
         'Alamouti (2 Tx, 2 Rx)'
        });
 
+%% Rayleigh Channel Simulator
+% <include>rayleigh_channel.m</include>
+
+%% MRRC Simulator
+% <include>mrrc.m</include>
+
+%% Alamouti Simulator
+% <include>alamouti.m</include>
+
 %% Helpers
 function h = generate_channel(channels)
     global N
