@@ -13,7 +13,7 @@ indent_size              = tab
 indent_style = space
 indent_size  = 2
 
-[*.m]
+[*.{m,py}]
 indent_style = space
 indent_size  = 4
 
