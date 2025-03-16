@@ -35,6 +35,7 @@
           in
           {
             packages = with pkgs; [
+              black
               mdformat
               pre-commit
               python3-pkgs
