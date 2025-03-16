@@ -34,6 +34,15 @@ includes = [
   "*.nix",
 ]
 
+[formatter.ruff]
+command = "ruff"
+options = [
+  "check",
+]
+includes = [
+  "*.py",
+]
+
 [formatter.shfmt]
 command = "shfmt"
 options = [

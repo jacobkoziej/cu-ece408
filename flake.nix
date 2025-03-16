@@ -39,6 +39,7 @@
               mdformat
               pre-commit
               python3-pkgs
+              ruff
               shfmt
               toml-sort
               treefmt2
