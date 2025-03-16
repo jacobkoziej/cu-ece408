@@ -102,6 +102,31 @@ _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
 }
 
 
+class ConvolutionalEncoder:
+    k: Final[int] = 7
+
+    def __call__(self, x: ndarray) -> ndarray:
+        assert x.shape == ()
+        assert x.dtype == np.uint8
+        assert x <= 1
+
+        state = self._state
+
+        code = np.zeros(2, dtype=np.uint8)
+
+        code[0] = x ^ state[1] ^ state[2] ^ state[4] ^ state[5]
+        code[1] = x ^ state[0] ^ state[1] ^ state[2] ^ state[5]
+
+        _ = state.pop()
+
+        state.appendleft(x)
+
+        return code
+
+    def __init__(self) -> None:
+        self._state = deque(np.zeros(self.k - 1, dtype=np.uint8))
+
+
 class Scrambler:
     CONSTRAINT_LENGTH: Final[int] = 7
 
