@@ -3,9 +3,14 @@
 # plcp.py -- OFDM PLCP sublayer
 # Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
+import numpy as np
+
+from collections import deque
 from dataclasses import dataclass
 from fractions import Fraction
 from typing import Final
+
+from numpy import ndarray
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -95,6 +100,32 @@ _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
         dbps=216,
     ),
 }
+
+
+class Scrambler:
+    CONSTRAINT_LENGTH: Final[int] = 7
+
+    def __call__(self, x: ndarray):
+        assert x.shape == ()
+        assert x.dtype == np.uint8
+        assert x <= 1
+
+        state = self._state
+
+        feedback = state[6] ^ state[3]
+
+        _ = state.pop()
+
+        state.appendleft(feedback)
+
+        return x ^ feedback
+
+    def __init__(self, state: ndarray):
+        assert len(state) == self.CONSTRAINT_LENGTH
+        assert state.dtype == np.uint8
+        assert np.all(state <= 1)
+
+        self._state = deque(state)
 
 
 def decode_rate(rate: int) -> int:
