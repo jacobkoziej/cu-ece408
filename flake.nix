@@ -24,6 +24,7 @@
           ps: with ps; [
             miss-hit
             numpy
+            pytest
           ]
         );
 
