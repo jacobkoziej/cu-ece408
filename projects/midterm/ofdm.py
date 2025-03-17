@@ -25,6 +25,10 @@ SUBCARRIERS_DATA: Final[int] = 48
 SUBCARRIERS_PILOT: Final[int] = 4
 SUBCARRIERS_TOTAL: Final[int] = SUBCARRIERS_DATA + SUBCARRIERS_PILOT
 
+SHORT_TRAINING_SYMBOL_SAMPLES: Final[int] = 16
+SHORT_TRAINING_SYMBOLS: Final[int] = 10
+LONG_TRAINING_SYMBOLS: Final[int] = 2
+
 _FFT_SIZE: Final[int] = 64
 _FFT_INDEX_SHIFT: Final[int] = ((_FFT_SIZE - SUBCARRIERS_TOTAL) // 2) - 1
 
@@ -57,6 +61,19 @@ def apply_window(x: ndarray) -> ndarray:
     return y
 
 
+def carrier_frequency_offset(s: ndarray, symbols: int = 4) -> ndarray:
+    assert symbols > 0
+    assert symbols < SHORT_TRAINING_SYMBOLS
+
+    s = s.reshape(-1, SHORT_TRAINING_SYMBOL_SAMPLES)
+
+    phi = np.angle(
+        s[..., -(symbols + 1) : -1, :].conj() * s[..., -symbols:, :]
+    )
+
+    return np.mean(phi, axis=(-2, -1))
+
+
 def demodulate(s: ndarray, equalizer: Optional[ndarray] = None) -> ndarray:
     if equalizer is None:
         equalizer = np.array(1)
@@ -84,7 +101,7 @@ def long_training_sequence() -> ndarray:
 
     l = ifft(ifftshift(L, axes=-1))  # noqa: E741
 
-    return np.tile(l, 2)
+    return np.tile(l, LONG_TRAINING_SYMBOLS)
 
 
 def modulate(d: ndarray) -> ndarray:
@@ -131,6 +148,6 @@ def short_training_sequence() -> ndarray:
     # fmt: on
 
     s = ifft(ifftshift(np.sqrt(13 / 6) * S, axes=-1))
-    s = np.tile(s, 10)
+    s = np.tile(s, SHORT_TRAINING_SYMBOLS)
 
-    return resample(s, 160)
+    return resample(s, SHORT_TRAINING_SYMBOLS * SHORT_TRAINING_SYMBOL_SAMPLES)
