@@ -25,6 +25,7 @@
             miss-hit
             numpy
             pytest
+            scipy
           ]
         );
 
