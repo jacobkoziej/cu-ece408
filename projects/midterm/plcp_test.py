@@ -7,6 +7,7 @@ import numpy as np
 
 from plcp import (
     Interleaver,
+    Puncturer,
     Scrambler,
     rate_parameter,
 )
@@ -29,6 +30,22 @@ def test_interleaver(rate: int) -> None:
     deinterleaved = interleaver.reverse(interleaved)
 
     assert np.all(x == deinterleaved)
+
+
+def test_puncturer(rate: int) -> None:
+    parameter = rate_parameter(rate)
+
+    puncturer = Puncturer(parameter.coding_rate)
+
+    data = np.arange(36)
+
+    punctured = puncturer.forward(data)
+
+    assert len(punctured) <= len(data)
+
+    unpunctured = puncturer.reverse(punctured)
+
+    assert len(unpunctured) == len(data)
 
 
 def test_scrambler() -> None:

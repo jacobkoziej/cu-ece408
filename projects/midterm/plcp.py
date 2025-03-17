@@ -43,6 +43,37 @@ _ENCODE_RATE: Final[dict[int, int]] = {
     48: 0b1000,
     54: 0b1100,
 }
+_PUNCTURE_MATRIX: Final[dict[Fraction, ndarray]] = {
+    Fraction(1, 2): np.array(
+        [1, 1],
+        dtype=np.bool,
+    ),
+    Fraction(2, 3): np.array(
+        [
+            [1, 1],
+            [1, 0],
+            [1, 1],
+            [1, 0],
+            [1, 1],
+            [1, 0],
+        ],
+        dtype=np.bool,
+    ),
+    Fraction(3, 4): np.array(
+        [
+            [1, 1],
+            [1, 0],
+            [0, 1],
+            [1, 1],
+            [1, 0],
+            [0, 1],
+            [1, 1],
+            [1, 0],
+            [0, 1],
+        ],
+        dtype=np.bool,
+    ),
+}
 _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
     6: RateParameter(
         modulation="BPSK",
@@ -192,6 +223,31 @@ class Interleaver:
             z[k] = y[int(i)]
 
         return z
+
+
+class Puncturer:
+    def __init__(self, coding_rate: Fraction) -> None:
+        self._puncture_matrix = _PUNCTURE_MATRIX[coding_rate]
+        self._punctured_shape = np.sum(self._puncture_matrix)
+
+    def forward(self, x: ndarray) -> ndarray:
+        p = self._puncture_matrix
+
+        y = x.reshape((-1,) + p.shape)
+        y = y[:, p]
+
+        return y.flatten()
+
+    def reverse(self, x: ndarray) -> ndarray:
+        p = self._puncture_matrix
+        s = (self._punctured_shape,)
+
+        y = x.reshape((-1,) + s)
+        z = np.zeros(y.shape[:-1] + p.shape, dtype=x.dtype)
+
+        z[:, p] = y
+
+        return z.flatten()
 
 
 class Scrambler:
