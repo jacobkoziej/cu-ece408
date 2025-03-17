@@ -73,7 +73,7 @@ def test_scrambler() -> None:
         :-1
     ]  # drop dummy bit since we have only 127 values
 
-    scrambler = Scrambler(np.ones(Scrambler.CONSTRAINT_LENGTH, dtype=np.uint8))
+    scrambler = Scrambler(np.ones(Scrambler.k - 1, dtype=np.uint8))
 
     x = np.array(0, dtype=np.uint8)
 

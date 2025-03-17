@@ -251,7 +251,7 @@ class Puncturer:
 
 
 class Scrambler:
-    CONSTRAINT_LENGTH: Final[int] = 7
+    k: Final[int] = 8
 
     def __call__(self, x: ndarray):
         assert x.shape == ()
@@ -269,7 +269,7 @@ class Scrambler:
         return x ^ feedback
 
     def __init__(self, state: ndarray):
-        assert len(state) == self.CONSTRAINT_LENGTH
+        assert len(state) == self.k - 1
         assert state.dtype == np.uint8
         assert np.all(state <= 1)
 
