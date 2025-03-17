@@ -17,7 +17,7 @@ from numpy.fft import (
     ifft,
     ifftshift,
 )
-from scipy.signal import resample_poly
+from scipy.signal import resample
 
 from plcp import Scrambler
 
@@ -94,4 +94,4 @@ def short_training_sequence() -> ndarray:
     s = ifft(ifftshift(np.sqrt(13 / 6) * S, axes=-1))
     s = np.repeat(s, 10)
 
-    return resample_poly(s, 160, len(s))
+    return resample(s, 160)
