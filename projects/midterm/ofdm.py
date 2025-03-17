@@ -48,6 +48,15 @@ def add_circular_prefix(x: ndarray, size: int = 16) -> ndarray:
     return np.concatenate((prefix, x), axis=-1)
 
 
+def apply_window(x: ndarray) -> ndarray:
+    y = np.copy(x)
+
+    y[+0] *= 0.5
+    y[-1] *= 0.5
+
+    return y
+
+
 def demodulate(s: ndarray, equalizer: Optional[ndarray] = None) -> ndarray:
     if equalizer is None:
         equalizer = np.array(1)
