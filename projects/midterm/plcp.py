@@ -234,7 +234,7 @@ class Puncturer:
         p = self._puncture_matrix
 
         y = x.reshape((-1,) + p.shape)
-        y = y[:, p]
+        y = y[..., p]
 
         return y.flatten()
 
@@ -245,7 +245,7 @@ class Puncturer:
         y = x.reshape((-1,) + s)
         z = np.zeros(y.shape[:-1] + p.shape, dtype=x.dtype)
 
-        z[:, p] = y
+        z[..., p] = y
 
         return z.flatten()
 
