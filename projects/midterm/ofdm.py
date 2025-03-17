@@ -17,6 +17,7 @@ from numpy.fft import (
     ifft,
     ifftshift,
 )
+from scipy.signal import resample_poly
 
 from plcp import Scrambler
 
@@ -65,3 +66,25 @@ def pilots(frames: int) -> ndarray:
         polarity[i] = -1 if scrambler(polarity[i].astype(np.uint8)) else 1
 
     return polarity[:, None] * _PILOTS[None, :]
+
+
+def short_training_sequence() -> ndarray:
+    S = np.zeros(SUBCARRIERS_TOTAL, dtype=np.complex128)
+
+    S[2] = +1 + 1j
+    S[6] = -1 - 1j
+    S[10] = +1 + 1j
+    S[14] = -1 - 1j
+    S[18] = -1 - 1j
+    S[22] = +1 + 1j
+    S[30] = -1 - 1j
+    S[34] = -1 - 1j
+    S[38] = +1 + 1j
+    S[42] = +1 + 1j
+    S[46] = +1 + 1j
+    S[50] = +1 + 1j
+
+    s = ifft(ifftshift(np.sqrt(13 / 6) * S, axes=-1))
+    s = np.repeat(s, 10)
+
+    return resample_poly(s, 160, len(s))
