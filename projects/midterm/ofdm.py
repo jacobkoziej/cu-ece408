@@ -5,11 +5,54 @@
 
 import numpy as np
 
+from typing import (
+    Final,
+    Optional,
+)
+
 from numpy import ndarray
+from numpy.fft import (
+    fft,
+    fftshift,
+    ifft,
+    ifftshift,
+)
 
 from plcp import Scrambler
 
+SUBCARRIERS_DATA: Final[int] = 48
+SUBCARRIERS_PILOT: Final[int] = 4
+SUBCARRIERS_TOTAL: Final[int] = SUBCARRIERS_DATA + SUBCARRIERS_PILOT
+
+_PILOT_INDICES: ndarray = np.zeros(SUBCARRIERS_TOTAL + 1, dtype=np.bool)
+_PILOT_INDICES[[5, 19, 33, 47]] = True
+
+_DATA_INDICES: ndarray = ~_PILOT_INDICES
+_DATA_INDICES[(SUBCARRIERS_TOTAL + 1) // 2] = False
+
 _PILOTS: ndarray = np.array([1, 1, 1, -1])
+
+
+def demodulate(s: ndarray, equalizer: Optional[ndarray] = None) -> ndarray:
+    if equalizer is None:
+        equalizer = np.array(1)
+
+    d = fftshift(fft(s / equalizer), axes=-1)
+
+    return d[..., _DATA_INDICES]
+
+
+def modulate(d: ndarray) -> ndarray:
+    shape = d.shape[:-1]
+
+    s = np.zeros(shape + (SUBCARRIERS_TOTAL + 1,), dtype=np.complex128)
+
+    frames = 1 if s.ndim <= 1 else s.shape[-2]
+
+    s[..., _PILOT_INDICES] = pilots(frames)
+    s[..., _DATA_INDICES] = d
+
+    return ifft(ifftshift(s, axes=-1))
 
 
 def pilots(frames: int) -> ndarray:

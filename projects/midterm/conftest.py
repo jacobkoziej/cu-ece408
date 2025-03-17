@@ -6,8 +6,28 @@
 import numpy as np
 import pytest
 
+from dataclasses import dataclass
+
+from numpy import ndarray
 from numpy.random import Generator
 from pytest import FixtureRequest
+
+from plcp import rate_parameter
+
+
+@dataclass(frozen=True)
+class Data:
+    rate: int
+    bits: ndarray
+
+
+@pytest.fixture
+def data(rng: Generator, random_count: int, rate: int) -> Data:
+    bpsc = rate_parameter(rate).bpsc
+
+    bits = rng.integers(0, (1 << bpsc), size=random_count, dtype=np.uint8)
+
+    return Data(rate, bits)
 
 
 @pytest.fixture(scope="session")
