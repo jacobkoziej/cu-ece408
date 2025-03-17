@@ -92,6 +92,6 @@ def short_training_sequence() -> ndarray:
     # fmt: on
 
     s = ifft(ifftshift(np.sqrt(13 / 6) * S, axes=-1))
-    s = np.repeat(s, 10)
+    s = np.tile(s, 10)
 
     return resample(s, 160)
