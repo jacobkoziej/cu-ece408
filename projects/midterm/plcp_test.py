@@ -6,8 +6,29 @@
 import numpy as np
 
 from plcp import (
+    Interleaver,
     Scrambler,
+    rate_parameter,
 )
+
+
+def test_interleaver(rate: int) -> None:
+    parameter = rate_parameter(rate)
+
+    interleaver = Interleaver(
+        bpsc=parameter.bpsc,
+        cbps=parameter.cbps,
+    )
+
+    x = np.arange(parameter.cbps)
+
+    interleaved = interleaver.forward(x)
+
+    assert np.any(x != interleaved)
+
+    deinterleaved = interleaver.reverse(interleaved)
+
+    assert np.all(x == deinterleaved)
 
 
 def test_scrambler() -> None:

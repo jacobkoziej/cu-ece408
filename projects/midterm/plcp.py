@@ -8,6 +8,7 @@ import numpy as np
 from collections import deque
 from dataclasses import dataclass
 from fractions import Fraction
+from math import floor
 from typing import Final
 
 from numpy import ndarray
@@ -125,6 +126,72 @@ class ConvolutionalEncoder:
 
     def __init__(self) -> None:
         self._state = deque(np.zeros(self.k - 1, dtype=np.uint8))
+
+
+class Interleaver:
+    def __init__(self, *, bpsc: int, cbps: int) -> None:
+        self._bpsc = bpsc
+        self._cbps = cbps
+
+    def forward(self, x: ndarray) -> ndarray:
+        cbps = self._cbps
+
+        assert len(x) == self._cbps
+
+        y = np.zeros(x.shape, dtype=x.dtype)
+
+        for k in range(cbps):
+            i = 1
+
+            i *= cbps / 16
+            i *= k % 16
+            i += floor(k / 16)
+
+            y[int(i)] = x[k]
+
+        z = np.zeros(y.shape, dtype=y.dtype)
+
+        for i in range(cbps):
+            s = max(self._bpsc / 2, 1)
+
+            j = 1
+
+            j *= s * floor(i / s)
+            j += (i + cbps - floor(16 * i / cbps)) % s
+
+            z[int(j)] = y[i]
+
+        return z
+
+    def reverse(self, x: ndarray) -> ndarray:
+        cbps = self._cbps
+
+        assert len(x) == self._cbps
+
+        y = np.zeros(x.shape, dtype=x.dtype)
+
+        for i in range(cbps):
+            s = max(self._bpsc / 2, 1)
+
+            j = 1
+
+            j *= s * floor(i / s)
+            j += (i + cbps - floor(16 * i / cbps)) % s
+
+            y[i] = x[int(j)]
+
+        z = np.zeros(y.shape, dtype=y.dtype)
+
+        for k in range(cbps):
+            i = 1
+
+            i *= cbps / 16
+            i *= k % 16
+            i += floor(k / 16)
+
+            z[k] = y[int(i)]
+
+        return z
 
 
 class Scrambler:
