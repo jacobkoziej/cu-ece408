@@ -48,6 +48,27 @@ def demodulate(s: ndarray, equalizer: Optional[ndarray] = None) -> ndarray:
     return d[..., _DATA_INDICES]
 
 
+def long_training_sequence() -> ndarray:
+    L = np.array(
+        [
+            # fmt: off
+            +0, +0, +0, +0, +0, +0, +1, +1,
+            -1, -1, +1, +1, -1, +1, -1, +1,
+            +1, +1, +1, +1, +1, -1, -1, +1,
+            +1, -1, +1, -1, +1, +1, +1, +1,
+            +0, +1, -1, -1, +1, +1, -1, +1,
+            -1, +1, -1, -1, -1, -1, -1, +1,
+            +1, -1, -1, +1, -1, +1, -1, +1,
+            +1, +1, +1, +0, +0, +0, +0, +0,
+            # fmt: on
+        ],
+    )
+
+    l = ifft(ifftshift(L, axes=-1))  # noqa: E741
+
+    return np.tile(l, 2)
+
+
 def modulate(d: ndarray) -> ndarray:
     shape = d.shape[:-1]
 
