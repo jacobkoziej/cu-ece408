@@ -39,6 +39,15 @@ _DATA_INDICES[-5:] = False
 _PILOTS: ndarray = np.array([1, 1, 1, -1])
 
 
+def add_circular_prefix(x: ndarray, size: int = 16) -> ndarray:
+    assert size > 0
+    assert size < x.shape[-1]
+
+    prefix = x[..., -size:]
+
+    return np.concatenate((prefix, x), axis=-1)
+
+
 def demodulate(s: ndarray, equalizer: Optional[ndarray] = None) -> ndarray:
     if equalizer is None:
         equalizer = np.array(1)
