@@ -11,30 +11,51 @@ from galois import GF2
 from bit import packbits
 
 
+def polynomial2generator_matrix(polynomials: list[int], k: int) -> GF2:
+    assert k > 0
+    assert len(polynomials) >= 1
+
+    return GF2(
+        [
+            galois.Poly.Int(polynomial, field=GF2).coefficients(k, "asc")
+            for polynomial in polynomials
+        ]
+    ).T
+
+
 class Viterbi:
-    def __init__(self, polynomials: list[int], k: int) -> None:
-        assert k > 0
-        assert len(polynomials) >= 1
+    def __init__(
+        self,
+        generator_matrix: GF2,
+        *,
+        initial_state: int = 0,
+        final_state: int = 0,
+    ) -> None:
+        self.generator_matrix = generator_matrix
+        self.initial_state = initial_state
+        self.final_state = final_state
 
-        generator_matrix = GF2(
-            [
-                galois.Poly.Int(polynomial, field=GF2).coefficients(k, "asc")
-                for polynomial in polynomials
-            ]
-        ).T
+        self.n = generator_matrix.shape[1]
 
-        states = GF2.Zeros((1 << (k - 1), k))
+        self.k = k = generator_matrix.shape[0]
+
+        states = 1 << (k - 1)
+
+        states = GF2.Zeros((states, k))
         states[:, 1:] = GF2(
             [
                 galois.Poly.Int(i, field=GF2).coefficients(k - 1, "asc")
-                for i in range(1 << (k - 1))
+                for i in range(states.shape[0])
             ]
         )
 
-        self._zero_branch = packbits(np.array(states[:, :-1]))
-        self._zero_expected = np.array(states @ generator_matrix)
+        zero_branch = packbits(np.array(states[:, :-1]))
+        zero_expected = states @ generator_matrix
 
         states[:, 0] = 1
 
-        self._one_branch = packbits(np.array(states[:, :-1]))
-        self._one_expected = np.array(states @ generator_matrix)
+        one_branch = packbits(np.array(states[:, :-1]))
+        one_expected = states @ generator_matrix
+
+        self._branch = np.stack([zero_branch, one_branch])
+        self._expected = np.stack([zero_expected, one_expected])
