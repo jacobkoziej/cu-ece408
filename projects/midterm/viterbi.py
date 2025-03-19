@@ -12,18 +12,6 @@ from numpy import ndarray
 from bit import packbits
 
 
-def polynomial2generator_matrix(polynomials: list[int], k: int) -> GF2:
-    assert k > 0
-    assert len(polynomials) >= 1
-
-    return GF2(
-        [
-            galois.Poly.Int(polynomial, field=GF2).coefficients(k, "asc")
-            for polynomial in polynomials
-        ]
-    ).T
-
-
 class Viterbi:
     def __call__(self, x: GF2) -> GF2:
         n = self.n
@@ -114,3 +102,15 @@ class Viterbi:
         bit = GF2(np.argmin(bit))
 
         return bit, previous_state[bit]
+
+
+def poly2matrix(polynomials: list[int], k: int) -> GF2:
+    assert k > 0
+    assert len(polynomials) >= 1
+
+    return GF2(
+        [
+            galois.Poly.Int(polynomial, field=GF2).coefficients(k, "asc")
+            for polynomial in polynomials
+        ]
+    ).T
