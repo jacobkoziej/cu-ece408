@@ -59,7 +59,7 @@ def test_puncturer(rng: Generator, random_count: int, rate: int) -> None:
 
 
 def test_scrambler() -> None:
-    sequence = np.array(
+    sequence = GF2(
         [
             # fmt: off
             0, 0, 0, 0, 1, 1, 1, 0,
@@ -80,12 +80,11 @@ def test_scrambler() -> None:
             1, 1, 1, 1, 1, 1, 1,
             # fmt: on
         ],
-        dtype=np.uint8,
     )
 
-    scrambler = Scrambler(np.ones(Scrambler.k - 1, dtype=np.uint8))
+    scrambler = Scrambler(GF2.Ones(Scrambler.k - 1))
 
-    x = np.array(0, dtype=np.uint8)
+    x = GF2(0)
 
     for _ in range(2):
         for i, bit in enumerate(sequence):

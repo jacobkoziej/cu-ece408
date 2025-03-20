@@ -251,11 +251,21 @@ class Puncturer:
 class Scrambler:
     k: Final[int] = 8
 
-    def __call__(self, x: ndarray):
-        assert x.shape == ()
-        assert x.dtype == np.uint8
-        assert x <= 1
+    def __call__(self, x: GF2):
+        y = x.copy()
 
+        if not y.ndim:
+            y = np.expand_dims(y, 0)
+
+        for y_i in np.nditer(y, op_flags=["readwrite"]):
+            y_i[...] = self._step(y_i)
+
+        return y.squeeze()
+
+    def __init__(self, state: GF2):
+        _ = self.seed(state)
+
+    def _step(self, x: GF2) -> GF2:
         state = self._state
 
         feedback = state[6] ^ state[3]
@@ -266,10 +276,17 @@ class Scrambler:
 
         return x ^ feedback
 
-    def __init__(self, state: ndarray):
+    def reset(self) -> GF2:
+        state = GF2(list(self._state))
+
+        self._state = deque(self._init_state)
+
+        return state
+
+    def seed(self, state: GF2) -> GF2:
         assert len(state) == self.k - 1
-        assert state.dtype == np.uint8
-        assert np.all(state <= 1)
+
+        self._init_state = state.copy()
 
         self._state = deque(state)
 
