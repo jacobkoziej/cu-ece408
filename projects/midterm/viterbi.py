@@ -6,6 +6,7 @@
 import galois
 import numpy as np
 
+from einops import reduce
 from galois import GF2
 from numpy import ndarray
 
@@ -27,18 +28,18 @@ class Viterbi:
 
             cost[i + 1] = new_cost
 
-        y = GF2.Zeros(len(x) + 1)
+        y = GF2.Zeros(len(x))
 
         path = np.full(len(x) + 1, -1)
         path[-1] = 0
 
-        for i in range(len(y) - 2, -1, -1):
-            bit, new_path = self._reverse_step(cost[i], path[i + 1])
+        for i in range(len(y), 0, -1):
+            bit, new_path = self._reverse_step(cost[i], path[i])
 
-            y[i] = bit
-            path[i] = new_path
+            y[i - 1] = bit
+            path[i - 1] = new_path
 
-        return y[1:]
+        return y
 
     def __init__(self, generator_matrix: GF2, k: int, n: int) -> None:
         assert k > 0
@@ -70,20 +71,21 @@ class Viterbi:
         self._expected = np.stack([zero_expected, one_expected])
 
     def _forward_step(self, x: GF2, cost: ndarray) -> GF2:
-        cost = np.min(cost, axis=-1)
+        cost = reduce(cost, "input state branch -> state", "min")
 
-        inf = cost == np.inf
-
-        cost.T[inf.T] = cost.T[inf[::-1].T]
-
-        branch_metric = np.sum(np.array(self._expected ^ x), axis=-1)
+        branch_metric = reduce(
+            np.array(self._expected ^ x),
+            "input state bits -> input state",
+            "sum",
+        )
         path_metric = branch_metric + cost
 
         branch = self._branch
         new_cost = np.full((self.n, self.states, self.states), np.inf)
 
-        for s, n in enumerate(np.argmin(path_metric, axis=0)):
-            new_cost[n, branch[n, s], s] = path_metric[n, s]
+        for n in range(self.n):
+            for s in range(self.states):
+                new_cost[n, branch[n, s], s] = path_metric[n, s]
 
         return new_cost
 
