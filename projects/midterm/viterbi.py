@@ -41,13 +41,14 @@ class Viterbi:
 
         return y
 
-    def __init__(self, generator_matrix: GF2, k: int, n: int) -> None:
-        assert k > 0
-        assert n > 0
-
+    def __init__(self, generator_matrix: GF2) -> None:
         self.generator_matrix = generator_matrix
-        self.k = k
-        self.n = n
+
+        self.k = k = generator_matrix.shape[0]
+        self.n = n = generator_matrix.shape[1]
+
+        # we only support 2-bit convolutional codes
+        assert n == 2
 
         self.states = states = 1 << (k - 1)
 
