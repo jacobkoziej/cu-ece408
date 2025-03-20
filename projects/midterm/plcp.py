@@ -11,6 +11,7 @@ from fractions import Fraction
 from math import floor
 from typing import Final
 
+from galois import GF2
 from numpy import ndarray
 
 
@@ -43,33 +44,37 @@ _ENCODE_RATE: Final[dict[int, int]] = {
     48: 0b1000,
     54: 0b1100,
 }
-_PUNCTURE_MATRIX: Final[dict[Fraction, ndarray]] = {
+_PUNCTURE_MASK: Final[dict[Fraction, ndarray]] = {
     Fraction(1, 2): np.array(
         [1, 1],
         dtype=np.bool,
     ),
     Fraction(2, 3): np.array(
         [
-            [1, 1],
-            [1, 0],
-            [1, 1],
-            [1, 0],
-            [1, 1],
-            [1, 0],
+            # fmt: off
+            1, 1,
+            1, 0,
+            1, 1,
+            1, 0,
+            1, 1,
+            1, 0,
+            # fmt: on
         ],
         dtype=np.bool,
     ),
     Fraction(3, 4): np.array(
         [
-            [1, 1],
-            [1, 0],
-            [0, 1],
-            [1, 1],
-            [1, 0],
-            [0, 1],
-            [1, 1],
-            [1, 0],
-            [0, 1],
+            # fmt: off
+            1, 1,
+            1, 0,
+            0, 1,
+            1, 1,
+            1, 0,
+            0, 1,
+            1, 1,
+            1, 0,
+            0, 1,
+            # fmt: on
         ],
         dtype=np.bool,
     ),
@@ -227,27 +232,20 @@ class Interleaver:
 
 class Puncturer:
     def __init__(self, coding_rate: Fraction) -> None:
-        self._puncture_matrix = _PUNCTURE_MATRIX[coding_rate]
-        self._punctured_shape = np.sum(self._puncture_matrix)
+        puncture_mask = _PUNCTURE_MASK[coding_rate]
 
-    def forward(self, x: ndarray) -> ndarray:
-        p = self._puncture_matrix
+        puncture_matrix = np.eye(len(puncture_mask), dtype=np.int64)
 
-        y = x.reshape((-1,) + p.shape)
-        y = y[..., p]
+        self._puncture_matrix = GF2(puncture_matrix[:, puncture_mask])
 
-        return y.flatten()
+    def _apply(self, x: GF2, G: GF2) -> GF2:
+        return (x.reshape(-1, G.shape[0]) @ G).flatten()
 
-    def reverse(self, x: ndarray) -> ndarray:
-        p = self._puncture_matrix
-        s = (self._punctured_shape,)
+    def forward(self, x: GF2) -> GF2:
+        return self._apply(x, self._puncture_matrix)
 
-        y = x.reshape((-1,) + s)
-        z = np.zeros(y.shape[:-1] + p.shape, dtype=x.dtype)
-
-        z[..., p] = y
-
-        return z.flatten()
+    def reverse(self, x: GF2) -> GF2:
+        return self._apply(x, self._puncture_matrix.T)
 
 
 class Scrambler:

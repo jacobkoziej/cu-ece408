@@ -5,6 +5,11 @@
 
 import numpy as np
 
+from fractions import Fraction
+
+from galois import GF2
+from numpy.random import Generator
+
 from plcp import (
     Interleaver,
     Puncturer,
@@ -32,12 +37,12 @@ def test_interleaver(rate: int) -> None:
     assert np.all(x == deinterleaved)
 
 
-def test_puncturer(rate: int) -> None:
+def test_puncturer(rng: Generator, random_count: int, rate: int) -> None:
     parameter = rate_parameter(rate)
 
     puncturer = Puncturer(parameter.coding_rate)
 
-    data = np.arange(36)
+    data = GF2(rng.integers(0, 2, random_count + (-random_count % 36)))
 
     punctured = puncturer.forward(data)
 
@@ -46,6 +51,11 @@ def test_puncturer(rate: int) -> None:
     unpunctured = puncturer.reverse(punctured)
 
     assert len(unpunctured) == len(data)
+
+    if parameter.coding_rate == Fraction(1, 2):
+        return
+
+    assert np.any(unpunctured != data)
 
 
 def test_scrambler() -> None:
