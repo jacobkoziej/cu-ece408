@@ -9,12 +9,20 @@ from collections import deque
 from dataclasses import dataclass
 from fractions import Fraction
 from math import floor
-from typing import Final
+from typing import (
+    Final,
+    Optional,
+)
 
 from galois import GF2
 from galois.typing import ArrayLike
 from numpy import ndarray
 from scipy.linalg import toeplitz
+
+from bit import (
+    packbits,
+    unpackbits,
+)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -24,6 +32,12 @@ class RateParameter:
     bpsc: int
     cbps: int
     dbps: int
+
+
+@dataclass(frozen=True)
+class Signal:
+    rate: int
+    length: int
 
 
 _DECODE_RATE: Final[dict[int, int]] = {
@@ -290,12 +304,56 @@ def decode_rate(rate: int) -> int:
         raise KeyError(f"Unsupported rate: {bin(rate)}")
 
 
+def decode_signal(signal: GF2) -> Optional[Signal]:
+    assert signal.shape == (24,)
+
+    if np.sum(signal[0:17]) != signal[17]:
+        return None
+
+    # fmt: off
+    rate   = signal[0:4]
+    length = signal[5:17]
+    # fmt: on
+
+    rate = decode_rate(int(packbits(rate)))
+
+    length = np.concatenate([length, [0] * 4])
+    length = packbits(length.reshape(-1, 8))
+    length = int(length[1] << 8) | int(length[0])
+
+    return Signal(rate, length)
+
+
 def encode_rate(rate: int) -> int:
     try:
         return _ENCODE_RATE[rate]
 
     except Exception as _:
         raise KeyError(f"Unsupported rate: {rate}")
+
+
+def encode_signal(signal: Signal) -> GF2:
+    length = signal.length
+
+    assert length > 0
+    assert length < 1 << 12
+
+    rate = unpackbits(
+        np.array(encode_rate(signal.rate), dtype=np.uint8), count=4
+    )
+
+    length = np.array([length & 0xFF, (length >> 8) & 0xFF], dtype=np.uint8)
+    length = unpackbits(length).flatten()[:12]
+
+    signal = GF2.Zeros(24)
+
+    # fmt: off
+    signal[0:4]  = rate
+    signal[5:17] = length
+    signal[17]   = np.sum(signal[0:17])
+    # fmt: on
+
+    return signal
 
 
 def rate_parameter(rate: int) -> RateParameter:
