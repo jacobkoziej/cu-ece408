@@ -7,23 +7,24 @@ import numpy as np
 
 from typing import Final
 
+from galois import GF2
 from numpy import ndarray
 
 _BITORDER: Final[str] = "little"
 
 
-def packbits(x: ndarray) -> ndarray:
+def packbits(x: GF2) -> ndarray:
     shape = x.shape[:-1]
 
-    x = np.packbits(x, axis=-1, bitorder=_BITORDER)
+    x = np.packbits(np.array(x), axis=-1, bitorder=_BITORDER)
 
     return x.reshape(shape)
 
 
-def unpackbits(x: ndarray, *, count: int = 8) -> ndarray:
+def unpackbits(x: ndarray, *, count: int = 8) -> GF2:
     assert count >= 1
     assert count <= 8
 
     x = x.reshape(x.shape + (1,))
 
-    return np.unpackbits(x, axis=-1, count=count, bitorder=_BITORDER)
+    return GF2(np.unpackbits(x, axis=-1, count=count, bitorder=_BITORDER))
