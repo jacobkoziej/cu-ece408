@@ -14,6 +14,7 @@ from typing import Final
 from galois import GF2
 from galois.typing import ArrayLike
 from numpy import ndarray
+from scipy.linalg import toeplitz
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -141,28 +142,17 @@ _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
 
 
 class ConvolutionalEncoder:
-    k: Final[int] = 7
+    def __call__(self, x: GF2) -> GF2:
+        k = self.k
 
-    def __call__(self, x: ndarray) -> ndarray:
-        assert x.shape == ()
-        assert x.dtype == np.uint8
-        assert x <= 1
+        X = GF2(toeplitz(x, [x[0]] + [0] * (k - 1)))
 
-        state = self._state
+        return X @ self.generator_matrix
 
-        code = np.zeros(2, dtype=np.uint8)
+    def __init__(self, generator_matrix: GF2) -> None:
+        self.generator_matrix = generator_matrix
 
-        code[0] = x ^ state[1] ^ state[2] ^ state[4] ^ state[5]
-        code[1] = x ^ state[0] ^ state[1] ^ state[2] ^ state[5]
-
-        _ = state.pop()
-
-        state.appendleft(x)
-
-        return code
-
-    def __init__(self) -> None:
-        self._state = deque(np.zeros(self.k - 1, dtype=np.uint8))
+        self.k = generator_matrix.shape[0]
 
 
 class Interleaver:
