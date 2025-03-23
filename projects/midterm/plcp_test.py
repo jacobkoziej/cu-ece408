@@ -42,7 +42,7 @@ def test_puncturer(rng: Generator, random_count: int, rate: int) -> None:
 
     puncturer = Puncturer(parameter.coding_rate)
 
-    data = GF2(rng.integers(0, 2, random_count + (-random_count % 36)))
+    data = GF2.Random(random_count + (-random_count % 36), seed=rng)
 
     punctured = puncturer.forward(data)
 
