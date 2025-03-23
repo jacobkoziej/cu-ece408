@@ -12,6 +12,7 @@ from math import floor
 from typing import Final
 
 from galois import GF2
+from galois.typing import ArrayLike
 from numpy import ndarray
 
 
@@ -169,12 +170,12 @@ class Interleaver:
         self._bpsc = bpsc
         self._cbps = cbps
 
-    def forward(self, x: ndarray) -> ndarray:
+    def forward(self, x: ArrayLike) -> ArrayLike:
         cbps = self._cbps
 
         assert len(x) == self._cbps
 
-        y = np.zeros(x.shape, dtype=x.dtype)
+        y = x.copy()
 
         for k in range(cbps):
             i = 1
@@ -185,7 +186,7 @@ class Interleaver:
 
             y[int(i)] = x[k]
 
-        z = np.zeros(y.shape, dtype=y.dtype)
+        z = y.copy()
 
         for i in range(cbps):
             s = max(self._bpsc / 2, 1)
@@ -199,12 +200,12 @@ class Interleaver:
 
         return z
 
-    def reverse(self, x: ndarray) -> ndarray:
+    def reverse(self, x: ArrayLike) -> ArrayLike:
         cbps = self._cbps
 
         assert len(x) == self._cbps
 
-        y = np.zeros(x.shape, dtype=x.dtype)
+        y = x.copy()
 
         for i in range(cbps):
             s = max(self._bpsc / 2, 1)
@@ -216,7 +217,7 @@ class Interleaver:
 
             y[i] = x[int(j)]
 
-        z = np.zeros(y.shape, dtype=y.dtype)
+        z = y.copy()
 
         for k in range(cbps):
             i = 1
