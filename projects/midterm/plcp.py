@@ -362,3 +362,7 @@ def rate_parameter(rate: int) -> RateParameter:
 
     except Exception as _:
         raise KeyError(f"Unsupported rate: {rate}")
+
+
+def service() -> GF2:
+    return GF2.Zeros(16)
