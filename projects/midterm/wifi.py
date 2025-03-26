@@ -28,6 +28,7 @@ from plcp import (
     SERVICE_BITS,
     SIGNAL_BITS,
     ConvolutionalEncoder,
+    Puncturer,
     Scrambler,
     Signal,
     decode_signal,
@@ -69,7 +70,11 @@ class Rx:
 
         self._update_state(signal)
 
-        data = self._apply_viterbi_decoder(data)
+        valid = GF2.Ones(data.shape)
+        valid = self._depuncture_data(valid)
+        valid = np.array(valid).astype(np.bool)
+
+        data = self._apply_viterbi_decoder(data, valid)
         state = self._estimate_scrambler_state(data[:SCRAMBLER_SERVICE_BITS])
         data = self._descramble_data(data, state)
 
@@ -86,8 +91,8 @@ class Rx:
 
         self.scrambler = Scrambler(0)
 
-    def _apply_viterbi_decoder(self, x: GF2) -> GF2:
-        return self.decoder(x)
+    def _apply_viterbi_decoder(self, x: GF2, valid: ndarray) -> GF2:
+        return self.decoder(x, valid)
 
     def _decode_data(self, data: GF2) -> ndarray:
         psdu = data[SERVICE_BITS : -(TAIL_BITS + self._n_pad)]
@@ -95,6 +100,11 @@ class Rx:
         y = packbits(psdu.reshape(-1, 8))
 
         return y
+
+    def _depuncture_data(self, x: GF2) -> GF2:
+        puncturer = Puncturer(self._coding_rate)
+
+        return puncturer.reverse(x)
 
     def _descramble_data(self, data: GF2, state: int) -> ndarray:
         self.scrambler.seed(state)
@@ -126,6 +136,10 @@ class Rx:
 
         rate_parameter = plcp.rate_parameter(self._rate)
 
+        self._coding_rate = rate_parameter.coding_rate
+
+        self._bpsc = rate_parameter.bpsc
+        self._cbps = rate_parameter.cbps
         self._dbps = rate_parameter.dbps
 
         self._n_data = _calculate_data_bits(self._length, self._dbps)
@@ -142,6 +156,7 @@ class Tx:
         data = self._encode_data(x)
         data = self._scramble_data(data)
         data = self._apply_convolutional_encoder(data)
+        data = self._puncture_data(data)
 
         return np.concatenate([signal, data]).astype(np.uint8)
 
@@ -172,6 +187,11 @@ class Tx:
 
         return data
 
+    def _puncture_data(self, x: GF2) -> GF2:
+        puncturer = Puncturer(self._coding_rate)
+
+        return puncturer.forward(x)
+
     def _scramble_data(self, x: GF2) -> GF2:
         seed = int(self.rng.integers(1, 1 << (Scrambler.k - 1)))
 
@@ -192,6 +212,10 @@ class Tx:
 
         rate_parameter = plcp.rate_parameter(rate)
 
+        self._coding_rate = rate_parameter.coding_rate
+
+        self._bpsc = rate_parameter.bpsc
+        self._cbps = rate_parameter.cbps
         self._dbps = rate_parameter.dbps
 
         self._n_data = _calculate_data_bits(self._length, self._dbps)
