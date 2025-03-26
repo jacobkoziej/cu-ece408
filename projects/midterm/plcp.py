@@ -155,6 +155,9 @@ _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
 }
 
 
+SERVICE_BITS: Final[int] = 16
+
+
 class ConvolutionalEncoder:
     def __call__(self, x: GF2) -> GF2:
         k = self.k
@@ -365,4 +368,4 @@ def rate_parameter(rate: int) -> RateParameter:
 
 
 def service() -> GF2:
-    return GF2.Zeros(16)
+    return GF2.Zeros(SERVICE_BITS)
