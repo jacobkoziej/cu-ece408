@@ -319,7 +319,7 @@ def decode_signal(signal: GF2) -> Optional[Signal]:
 
     length = np.concatenate([length, [0] * 4])
     length = packbits(length.reshape(-1, 8))
-    length = int(length[1] << 8) | int(length[0])
+    length = int(length[1]) << 8 | int(length[0])
 
     return Signal(rate, length)
 
