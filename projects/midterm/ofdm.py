@@ -132,6 +132,13 @@ def pilots(frames: int) -> ndarray:
     return polarity[:, None] * _PILOTS[None, :]
 
 
+def remove_circular_prefix(x: ndarray, size: int = CIRCULAR_PREFIX) -> ndarray:
+    assert size > 0
+    assert size < x.shape[-1]
+
+    return x[..., size:]
+
+
 def short_training_sequence() -> ndarray:
     S = np.zeros(_FFT_SIZE, dtype=np.complex128)
 
