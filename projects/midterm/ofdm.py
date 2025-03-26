@@ -55,8 +55,8 @@ def add_circular_prefix(x: ndarray, size: int = 16) -> ndarray:
 def apply_window(x: ndarray) -> ndarray:
     y = np.copy(x)
 
-    y[+0] *= 0.5
-    y[-1] *= 0.5
+    y[..., +0] *= 0.5
+    y[..., -1] *= 0.5
 
     return y
 
