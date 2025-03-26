@@ -22,13 +22,20 @@ from bit import (
     unpackbits,
 )
 from plcp import (
+    GENERATOR_CONSTRAINT_LENGTH,
+    GENERATOR_POLYNOMIALS,
     SCRAMBLER_SERVICE_BITS,
     SERVICE_BITS,
     SIGNAL_BITS,
+    ConvolutionalEncoder,
     Scrambler,
     Signal,
     decode_signal,
     encode_signal,
+)
+from viterbi import (
+    Viterbi,
+    poly2matrix,
 )
 
 
@@ -62,12 +69,25 @@ class Rx:
 
         self._update_state(signal)
 
+        data = self._apply_viterbi_decoder(data)
         state = self._estimate_scrambler_state(data[:SCRAMBLER_SERVICE_BITS])
         data = self._descramble_data(data, state)
 
         y = self._decode_data(data)
 
         return y
+
+    def __init__(self) -> None:
+        generator_matrix = poly2matrix(
+            GENERATOR_POLYNOMIALS,
+            GENERATOR_CONSTRAINT_LENGTH,
+        )
+        self.decoder = Viterbi(generator_matrix)
+
+        self.scrambler = Scrambler(0)
+
+    def _apply_viterbi_decoder(self, x: GF2) -> GF2:
+        return self.decoder(x)
 
     def _decode_data(self, data: GF2) -> ndarray:
         psdu = data[SERVICE_BITS : -(TAIL_BITS + self._n_pad)]
@@ -77,9 +97,9 @@ class Rx:
         return y
 
     def _descramble_data(self, data: GF2, state: int) -> ndarray:
-        scrambler = Scrambler(state)
+        self.scrambler.seed(state)
 
-        descrambled = scrambler(data)
+        descrambled = self.scrambler(data)
 
         n_pad = self._n_pad
 
@@ -88,14 +108,12 @@ class Rx:
         return descrambled
 
     def _estimate_scrambler_state(self, service: GF2) -> int:
-        scrambler = Scrambler(0)
-
         zeros = GF2.Zeros(service.shape)
 
         for state in range(1, 1 << (Scrambler.k - 1)):
-            scrambler.seed(state)
+            self.scrambler.seed(state)
 
-            descrambled = scrambler(service)
+            descrambled = self.scrambler(service)
 
             if np.all(descrambled == zeros):
                 break
@@ -123,6 +141,7 @@ class Tx:
 
         data = self._encode_data(x)
         data = self._scramble_data(data)
+        data = self._apply_convolutional_encoder(data)
 
         return np.concatenate([signal, data]).astype(np.uint8)
 
@@ -131,6 +150,17 @@ class Tx:
             rng = np.random.default_rng()
 
         self.rng = rng
+
+        generator_matrix = poly2matrix(
+            GENERATOR_POLYNOMIALS,
+            GENERATOR_CONSTRAINT_LENGTH,
+        )
+        self.encoder = ConvolutionalEncoder(generator_matrix)
+
+        self.scrambler = Scrambler(0)
+
+    def _apply_convolutional_encoder(self, x: GF2) -> GF2:
+        return self.encoder(x).flatten()
 
     def _encode_data(self, x: ndarray) -> GF2:
         data = GF2.Zeros(self._n_data)
@@ -145,9 +175,9 @@ class Tx:
     def _scramble_data(self, x: GF2) -> GF2:
         seed = int(self.rng.integers(1, 1 << (Scrambler.k - 1)))
 
-        scrambler = Scrambler(seed)
+        self.scrambler.seed(seed)
 
-        scrambled = scrambler(x)
+        scrambled = self.scrambler(x)
 
         n_pad = self._n_pad
 

@@ -156,6 +156,9 @@ _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
 }
 
 
+GENERATOR_CONSTRAINT_LENGTH: Final[int] = 7
+GENERATOR_POLYNOMIALS: Final[list[int]] = [0o133, 0o171]
+
 # fmt: off
 SCRAMBLER_SERVICE_BITS: Final[int] = 7
 SERVICE_BITS:           Final[int] = 16
