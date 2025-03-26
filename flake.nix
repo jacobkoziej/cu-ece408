@@ -27,6 +27,7 @@
             miss-hit
             numpy
             pytest
+            pytest-xdist
             scipy
           ]
         );
