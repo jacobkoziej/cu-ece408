@@ -14,6 +14,8 @@ from numpy import ndarray
 from conftest import Data
 from plcp import rate_parameter
 from ofdm import (
+    SHORT_TRAINING_SYMBOLS,
+    SHORT_TRAINING_SYMBOL_SAMPLES,
     carrier_frequency_offset,
 )
 
@@ -30,13 +32,17 @@ def test_carrier_frequency_offset(
     phi: float,
     symbols: int,
 ) -> None:
-    samples = ofdm.SHORT_TRAINING_SYMBOLS * ofdm.SHORT_TRAINING_SYMBOL_SAMPLES
+    samples = SHORT_TRAINING_SYMBOLS * SHORT_TRAINING_SYMBOL_SAMPLES
 
-    cfo = np.exp(
-        1j * (phi / ofdm.SHORT_TRAINING_SYMBOL_SAMPLES) * np.arange(samples)
+    phi /= SHORT_TRAINING_SYMBOL_SAMPLES
+
+    cfo = np.exp(1j * phi * np.arange(samples))
+
+    theta = carrier_frequency_offset(
+        short_training_sequence * cfo,
+        samples=SHORT_TRAINING_SYMBOL_SAMPLES,
+        symbols=4,
     )
-
-    theta = carrier_frequency_offset(short_training_sequence * cfo)
 
     assert np.isclose(phi, theta)
 

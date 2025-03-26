@@ -64,17 +64,23 @@ def apply_window(x: ndarray) -> ndarray:
     return y
 
 
-def carrier_frequency_offset(s: ndarray, symbols: int = 4) -> ndarray:
+def carrier_frequency_offset(
+    s: ndarray,
+    samples: int,
+    symbols: int,
+) -> ndarray:
+    assert samples > 0
     assert symbols > 0
-    assert symbols < SHORT_TRAINING_SYMBOLS
 
-    s = s.reshape(-1, SHORT_TRAINING_SYMBOL_SAMPLES)
+    s = s[..., -samples * (symbols + 1) :]
+
+    s = s.reshape(*s.shape[:-1], -1, samples)
 
     phi = np.angle(
         s[..., -(symbols + 1) : -1, :].conj() * s[..., -symbols:, :]
     )
 
-    return np.mean(phi, axis=(-2, -1))
+    return np.mean(phi, axis=(-2, -1)) / samples
 
 
 def demodulate(s: ndarray, equalizer: Optional[ndarray] = None) -> ndarray:
