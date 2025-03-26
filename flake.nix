@@ -25,6 +25,7 @@
             einops
             galois
             jupyter
+            jupytext
             matplotlib
             miss-hit
             numpy
