@@ -107,9 +107,9 @@ class Rx:
         data   = x[FRAME_SIZE:]
         # fmt: on
 
-        signal = self._ofdm_demodulate_data(signal)
-        signal = self._demodulate_data(signal, 6)
-        signal = self._deinterleave_data(signal, 6)
+        signal = self._ofdm_demodulate(signal)
+        signal = self._demodulate(signal, 6)
+        signal = self._deinterleave(signal, 6)
         signal = self._apply_viterbi_decoder(signal)
         signal = decode_signal(signal)
 
@@ -118,20 +118,20 @@ class Rx:
 
         self._update_state(signal)
 
-        data = self._ofdm_demodulate_data(data)
-        data = self._demodulate_data(data)
-        data = self._deinterleave_data(data)
+        data = self._ofdm_demodulate(data)
+        data = self._demodulate(data)
+        data = self._deinterleave(data)
 
         valid = GF2.Ones(data.shape)
-        valid = self._depuncture_data(valid)
+        valid = self._depuncture(valid)
         valid = np.array(valid).astype(np.bool)
 
-        data = self._depuncture_data(data)
+        data = self._depuncture(data)
         data = self._apply_viterbi_decoder(data, valid)
         state = self._estimate_scrambler_state(data[:SCRAMBLER_SERVICE_BITS])
-        data = self._descramble_data(data, state)
+        data = self._descramble(data, state)
 
-        y = self._decode_data(data)
+        y = self._decode(data)
 
         return y
 
@@ -151,14 +151,14 @@ class Rx:
     ) -> GF2:
         return self.decoder(x, valid)
 
-    def _decode_data(self, data: GF2) -> ndarray:
+    def _decode(self, data: GF2) -> ndarray:
         psdu = data[SERVICE_BITS : -(TAIL_BITS + self._n_pad)]
 
         y = packbits(psdu.reshape(-1, 8))
 
         return y
 
-    def _deinterleave_data(self, x: GF2, rate: Optional[int] = None) -> GF2:
+    def _deinterleave(self, x: GF2, rate: Optional[int] = None) -> GF2:
         if rate is None:
             rate = self._rate
 
@@ -175,7 +175,7 @@ class Rx:
 
         return y.flatten()
 
-    def _demodulate_data(self, x: GF2, rate: Optional[int] = None) -> ndarray:
+    def _demodulate(self, x: GF2, rate: Optional[int] = None) -> ndarray:
         if rate is None:
             rate = self._rate
 
@@ -185,12 +185,12 @@ class Rx:
 
         return unpackbits(x, count=bpsc).flatten()
 
-    def _depuncture_data(self, x: GF2) -> GF2:
+    def _depuncture(self, x: GF2) -> GF2:
         puncturer = Puncturer(self._coding_rate)
 
         return puncturer.reverse(x)
 
-    def _descramble_data(self, data: GF2, state: int) -> ndarray:
+    def _descramble(self, data: GF2, state: int) -> ndarray:
         self.scrambler.seed(state)
 
         descrambled = self.scrambler(data)
@@ -214,7 +214,7 @@ class Rx:
 
         return state
 
-    def _ofdm_demodulate_data(self, x: ndarray) -> ndarray:
+    def _ofdm_demodulate(self, x: ndarray) -> ndarray:
         x = x.reshape(-1, FRAME_SIZE)
         x = unapply_window(x)
         x = remove_circular_prefix(x)
@@ -247,17 +247,17 @@ class Tx:
         signal = Signal(rate, self._length)
         signal = encode_signal(signal)
         signal = self._apply_convolutional_encoder(signal)
-        signal = self._interleave_data(signal, 6)
-        signal = self._modulate_data(signal, 6)
-        signal = self._ofdm_modulate_data(signal)
+        signal = self._interleave(signal, 6)
+        signal = self._modulate(signal, 6)
+        signal = self._ofdm_modulate(signal)
 
-        data = self._encode_data(x)
-        data = self._scramble_data(data)
+        data = self._encode(x)
+        data = self._scramble(data)
         data = self._apply_convolutional_encoder(data)
-        data = self._puncture_data(data)
-        data = self._interleave_data(data)
-        data = self._modulate_data(data)
-        data = self._ofdm_modulate_data(data)
+        data = self._puncture(data)
+        data = self._interleave(data)
+        data = self._modulate(data)
+        data = self._ofdm_modulate(data)
 
         return np.concatenate(
             [
@@ -285,7 +285,7 @@ class Tx:
     def _apply_convolutional_encoder(self, x: GF2) -> GF2:
         return self.encoder(x).flatten()
 
-    def _encode_data(self, x: ndarray) -> GF2:
+    def _encode(self, x: ndarray) -> GF2:
         data = GF2.Zeros(self._n_data)
 
         psdu = unpackbits(x).flatten()
@@ -295,7 +295,7 @@ class Tx:
 
         return data
 
-    def _interleave_data(self, x: GF2, rate: Optional[int] = None) -> GF2:
+    def _interleave(self, x: GF2, rate: Optional[int] = None) -> GF2:
         if rate is None:
             rate = self._rate
 
@@ -312,7 +312,7 @@ class Tx:
 
         return y.flatten()
 
-    def _modulate_data(self, x: GF2, rate: Optional[int] = None) -> ndarray:
+    def _modulate(self, x: GF2, rate: Optional[int] = None) -> ndarray:
         if rate is None:
             rate = self._rate
 
@@ -323,19 +323,19 @@ class Tx:
 
         return modulate(x, rate)
 
-    def _ofdm_modulate_data(self, x: ndarray) -> ndarray:
+    def _ofdm_modulate(self, x: ndarray) -> ndarray:
         x = x.reshape(-1, SUBCARRIERS_DATA)
         x = ofdm.modulate(x)
         x = add_circular_prefix(x)
 
         return apply_window(x).flatten()
 
-    def _puncture_data(self, x: GF2) -> GF2:
+    def _puncture(self, x: GF2) -> GF2:
         puncturer = Puncturer(self._coding_rate)
 
         return puncturer.forward(x)
 
-    def _scramble_data(self, x: GF2) -> GF2:
+    def _scramble(self, x: GF2) -> GF2:
         seed = int(self.rng.integers(1, 1 << (Scrambler.k - 1)))
 
         self.scrambler.seed(seed)
