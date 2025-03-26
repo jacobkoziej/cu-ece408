@@ -141,7 +141,7 @@ _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
     ),
     48: RateParameter(
         modulation="64-QAM",
-        coding_rate=Fraction(1, 2),
+        coding_rate=Fraction(2, 3),
         bpsc=6,
         cbps=288,
         dbps=192,
