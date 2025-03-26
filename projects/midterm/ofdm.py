@@ -161,3 +161,12 @@ def short_training_sequence() -> ndarray:
     s = np.tile(s, SHORT_TRAINING_SYMBOLS)
 
     return resample(s, SHORT_TRAINING_SYMBOLS * SHORT_TRAINING_SYMBOL_SAMPLES)
+
+
+def unapply_window(x: ndarray) -> ndarray:
+    y = np.copy(x)
+
+    y[..., +0] *= 2.0
+    y[..., -1] *= 2.0
+
+    return y
