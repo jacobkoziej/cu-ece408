@@ -28,6 +28,7 @@ from plcp import (
     SERVICE_BITS,
     SIGNAL_BITS,
     ConvolutionalEncoder,
+    Interleaver,
     Puncturer,
     Scrambler,
     Signal,
@@ -54,6 +55,10 @@ def _calculate_pad_bits(length: int, n_data: int) -> int:
     return n_data - (SERVICE_BITS + 8 * length + TAIL_BITS)
 
 
+def _chunk_data(x: GF2, cbps: int) -> GF2:
+    return x.reshape(-1, cbps)
+
+
 class Rx:
     def __call__(self, x: ndarray) -> Optional[ndarray]:
         x = GF2(x)
@@ -70,10 +75,12 @@ class Rx:
 
         self._update_state(signal)
 
+        data = self._deinterleave_data(data)
         valid = GF2.Ones(data.shape)
         valid = self._depuncture_data(valid)
         valid = np.array(valid).astype(np.bool)
 
+        data = self._depuncture_data(data)
         data = self._apply_viterbi_decoder(data, valid)
         state = self._estimate_scrambler_state(data[:SCRAMBLER_SERVICE_BITS])
         data = self._descramble_data(data, state)
@@ -100,6 +107,17 @@ class Rx:
         y = packbits(psdu.reshape(-1, 8))
 
         return y
+
+    def _deinterleave_data(self, x: GF2) -> GF2:
+        cbps = self._cbps
+
+        x = _chunk_data(x, cbps)
+
+        interleaver = Interleaver(bpsc=self._bpsc, cbps=cbps)
+
+        y = interleaver.reverse(x)
+
+        return y.flatten()
 
     def _depuncture_data(self, x: GF2) -> GF2:
         puncturer = Puncturer(self._coding_rate)
@@ -157,6 +175,7 @@ class Tx:
         data = self._scramble_data(data)
         data = self._apply_convolutional_encoder(data)
         data = self._puncture_data(data)
+        data = self._interleave_data(data)
 
         return np.concatenate([signal, data]).astype(np.uint8)
 
@@ -186,6 +205,17 @@ class Tx:
         data[SERVICE_BITS : -(TAIL_BITS + self._n_pad)] = psdu
 
         return data
+
+    def _interleave_data(self, x: GF2) -> GF2:
+        cbps = self._cbps
+
+        x = _chunk_data(x, cbps)
+
+        interleaver = Interleaver(bpsc=self._bpsc, cbps=cbps)
+
+        y = interleaver.forward(x)
+
+        return y.flatten()
 
     def _puncture_data(self, x: GF2) -> GF2:
         puncturer = Puncturer(self._coding_rate)
