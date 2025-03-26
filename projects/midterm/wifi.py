@@ -21,6 +21,10 @@ from bit import (
     packbits,
     unpackbits,
 )
+from modulate import (
+    demodulate,
+    modulate,
+)
 from plcp import (
     GENERATOR_CONSTRAINT_LENGTH,
     GENERATOR_POLYNOMIALS,
@@ -61,19 +65,20 @@ def _chunk_data(x: GF2, cbps: int) -> GF2:
 
 class Rx:
     def __call__(self, x: ndarray) -> Optional[ndarray]:
-        x = GF2(x)
-
         # fmt: off
         signal = x[:SIGNAL_BITS]
         data   = x[SIGNAL_BITS:]
         # fmt: on
 
+        signal = self._demodulate_data(signal, 6)
         signal = decode_signal(signal)
 
         if signal is None:
             return None
 
         self._update_state(signal)
+
+        data = self._demodulate_data(data, self._rate)
 
         data = self._deinterleave_data(data)
         valid = GF2.Ones(data.shape)
@@ -118,6 +123,13 @@ class Rx:
         y = interleaver.reverse(x)
 
         return y.flatten()
+
+    def _demodulate_data(self, x: GF2, rate: int) -> ndarray:
+        bpsc = plcp.rate_parameter(rate).bpsc
+
+        x = demodulate(x, rate)
+
+        return unpackbits(x, count=bpsc).flatten()
 
     def _depuncture_data(self, x: GF2) -> GF2:
         puncturer = Puncturer(self._coding_rate)
@@ -170,14 +182,16 @@ class Tx:
 
         signal = Signal(rate, self._length)
         signal = encode_signal(signal)
+        signal = self._modulate_data(signal, 6)
 
         data = self._encode_data(x)
         data = self._scramble_data(data)
         data = self._apply_convolutional_encoder(data)
         data = self._puncture_data(data)
         data = self._interleave_data(data)
+        data = self._modulate_data(data, rate)
 
-        return np.concatenate([signal, data]).astype(np.uint8)
+        return np.concatenate([signal, data])
 
     def __init__(self, *, rng: Generator = None):
         if rng is None:
@@ -216,6 +230,14 @@ class Tx:
         y = interleaver.forward(x)
 
         return y.flatten()
+
+    def _modulate_data(self, x: GF2, rate: int) -> ndarray:
+        bpsc = plcp.rate_parameter(rate).bpsc
+
+        x = x.reshape(-1, bpsc)
+        x = packbits(x)
+
+        return modulate(x, rate)
 
     def _puncture_data(self, x: GF2) -> GF2:
         puncturer = Puncturer(self._coding_rate)
