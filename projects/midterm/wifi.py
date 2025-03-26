@@ -5,6 +5,7 @@
 
 import numpy as np
 
+import ofdm
 import plcp
 
 from math import ceil
@@ -25,15 +26,22 @@ from modulate import (
     demodulate,
     modulate,
 )
+from ofdm import (
+    FRAME_SIZE,
+    SUBCARRIERS_DATA,
+    add_circular_prefix,
+    apply_window,
+    remove_circular_prefix,
+    unapply_window,
+)
 from plcp import (
+    ConvolutionalEncoder,
     GENERATOR_CONSTRAINT_LENGTH,
     GENERATOR_POLYNOMIALS,
-    SCRAMBLER_SERVICE_BITS,
-    SERVICE_BITS,
-    SIGNAL_BITS,
-    ConvolutionalEncoder,
     Interleaver,
     Puncturer,
+    SCRAMBLER_SERVICE_BITS,
+    SERVICE_BITS,
     Scrambler,
     Signal,
     decode_signal,
@@ -66,10 +74,11 @@ def _chunk_data(x: GF2, cbps: int) -> GF2:
 class Rx:
     def __call__(self, x: ndarray) -> Optional[ndarray]:
         # fmt: off
-        signal = x[:SIGNAL_BITS * 2]
-        data   = x[SIGNAL_BITS * 2:]
+        signal = x[:FRAME_SIZE]
+        data   = x[FRAME_SIZE:]
         # fmt: on
 
+        signal = self._ofdm_demodulate_data(signal)
         signal = self._demodulate_data(signal, 6)
         signal = self._deinterleave_data(signal, 6)
         signal = self._apply_viterbi_decoder(signal)
@@ -80,6 +89,7 @@ class Rx:
 
         self._update_state(signal)
 
+        data = self._ofdm_demodulate_data(data)
         data = self._demodulate_data(data)
         data = self._deinterleave_data(data)
 
@@ -175,6 +185,13 @@ class Rx:
 
         return state
 
+    def _ofdm_demodulate_data(self, x: ndarray) -> ndarray:
+        x = x.reshape(-1, FRAME_SIZE)
+        x = unapply_window(x)
+        x = remove_circular_prefix(x)
+
+        return ofdm.demodulate(x).flatten()
+
     def _update_state(self, signal: Signal) -> None:
         self._rate = signal.rate
         self._length = signal.length
@@ -200,6 +217,7 @@ class Tx:
         signal = self._apply_convolutional_encoder(signal)
         signal = self._interleave_data(signal, 6)
         signal = self._modulate_data(signal, 6)
+        signal = self._ofdm_modulate_data(signal)
 
         data = self._encode_data(x)
         data = self._scramble_data(data)
@@ -207,6 +225,7 @@ class Tx:
         data = self._puncture_data(data)
         data = self._interleave_data(data)
         data = self._modulate_data(data)
+        data = self._ofdm_modulate_data(data)
 
         return np.concatenate([signal, data])
 
@@ -264,6 +283,13 @@ class Tx:
         x = packbits(x)
 
         return modulate(x, rate)
+
+    def _ofdm_modulate_data(self, x: ndarray) -> ndarray:
+        x = x.reshape(-1, SUBCARRIERS_DATA)
+        x = ofdm.modulate(x)
+        x = add_circular_prefix(x)
+
+        return apply_window(x).flatten()
 
     def _puncture_data(self, x: GF2) -> GF2:
         puncturer = Puncturer(self._coding_rate)
