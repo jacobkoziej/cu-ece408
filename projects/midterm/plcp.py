@@ -188,7 +188,7 @@ class Interleaver:
     def forward(self, x: ArrayLike) -> ArrayLike:
         cbps = self._cbps
 
-        assert len(x) == self._cbps
+        assert x.shape[-1] == self._cbps
 
         y = x.copy()
 
@@ -199,7 +199,7 @@ class Interleaver:
             i *= k % 16
             i += floor(k / 16)
 
-            y[int(i)] = x[k]
+            y[..., int(i)] = x[..., k]
 
         z = y.copy()
 
@@ -211,14 +211,14 @@ class Interleaver:
             j *= s * floor(i / s)
             j += (i + cbps - floor(16 * i / cbps)) % s
 
-            z[int(j)] = y[i]
+            z[..., int(j)] = y[..., i]
 
         return z
 
     def reverse(self, x: ArrayLike) -> ArrayLike:
         cbps = self._cbps
 
-        assert len(x) == self._cbps
+        assert x.shape[-1] == self._cbps
 
         y = x.copy()
 
@@ -230,7 +230,7 @@ class Interleaver:
             j *= s * floor(i / s)
             j += (i + cbps - floor(16 * i / cbps)) % s
 
-            y[i] = x[int(j)]
+            y[..., i] = x[..., int(j)]
 
         z = y.copy()
 
@@ -241,7 +241,7 @@ class Interleaver:
             i *= k % 16
             i += floor(k / 16)
 
-            z[k] = y[int(i)]
+            z[..., k] = y[..., int(i)]
 
         return z
 
