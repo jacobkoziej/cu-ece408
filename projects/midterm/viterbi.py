@@ -6,6 +6,8 @@
 import galois
 import numpy as np
 
+from typing import Optional
+
 from einops import reduce
 from galois import GF2
 from numpy import ndarray
@@ -14,17 +16,21 @@ from bit import packbits
 
 
 class Viterbi:
-    def __call__(self, x: GF2) -> GF2:
+    def __call__(self, x: GF2, valid: Optional[ndarray] = None) -> GF2:
+        if valid is None:
+            valid = np.full(x.shape, True)
+
         n = self.n
         states = self.states
 
         x = x.reshape(-1, n)
+        valid = valid.reshape(x.shape)
 
         cost = np.full((len(x) + 1, n, states, states), np.inf)
         cost[0, 0, 0, 0] = 0
 
-        for i, x_i in enumerate(x):
-            new_cost = self._forward_step(x_i, cost[i])
+        for i, (x_i, valid_i) in enumerate(zip(x, valid)):
+            new_cost = self._forward_step(x_i, valid_i, cost[i])
 
             cost[i + 1] = new_cost
 
@@ -71,11 +77,12 @@ class Viterbi:
         self._branch = np.stack([zero_branch, one_branch])
         self._expected = np.stack([zero_expected, one_expected])
 
-    def _forward_step(self, x: GF2, cost: ndarray) -> GF2:
+    def _forward_step(self, x: GF2, valid: ndarray, cost: ndarray) -> GF2:
         cost = reduce(cost, "input state branch -> state", "min")
 
+        branch_metric = np.array(self._expected ^ x)
         branch_metric = reduce(
-            np.array(self._expected ^ x),
+            branch_metric * valid,
             "input state bits -> input state",
             "sum",
         )
