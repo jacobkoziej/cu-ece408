@@ -34,15 +34,15 @@ def test_viterbi(
     x = GF2.Random(random_count, seed=rng)
     x = np.concatenate([x, [0] * (k - 1)])
 
-    bit_flips = rng.integers(0, random_count, k)
-
-    x[bit_flips] ^= x[bit_flips]
-
     c = ConvolutionalEncoder(G)
 
     y = c(x)
 
     v = Viterbi(G)
+
+    bit_flips = rng.integers(0, random_count, k)
+
+    y[bit_flips] ^= y[bit_flips]
 
     decoded = v(y)
 
