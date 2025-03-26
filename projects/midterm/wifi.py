@@ -66,11 +66,13 @@ def _chunk_data(x: GF2, cbps: int) -> GF2:
 class Rx:
     def __call__(self, x: ndarray) -> Optional[ndarray]:
         # fmt: off
-        signal = x[:SIGNAL_BITS]
-        data   = x[SIGNAL_BITS:]
+        signal = x[:SIGNAL_BITS * 2]
+        data   = x[SIGNAL_BITS * 2:]
         # fmt: on
 
         signal = self._demodulate_data(signal, 6)
+        signal = self._deinterleave_data(signal, 6)
+        signal = self._apply_viterbi_decoder(signal)
         signal = decode_signal(signal)
 
         if signal is None:
@@ -78,9 +80,9 @@ class Rx:
 
         self._update_state(signal)
 
-        data = self._demodulate_data(data, self._rate)
-
+        data = self._demodulate_data(data)
         data = self._deinterleave_data(data)
+
         valid = GF2.Ones(data.shape)
         valid = self._depuncture_data(valid)
         valid = np.array(valid).astype(np.bool)
@@ -103,7 +105,11 @@ class Rx:
 
         self.scrambler = Scrambler(0)
 
-    def _apply_viterbi_decoder(self, x: GF2, valid: ndarray) -> GF2:
+    def _apply_viterbi_decoder(
+        self,
+        x: GF2,
+        valid: Optional[ndarray] = None,
+    ) -> GF2:
         return self.decoder(x, valid)
 
     def _decode_data(self, data: GF2) -> ndarray:
@@ -113,18 +119,27 @@ class Rx:
 
         return y
 
-    def _deinterleave_data(self, x: GF2) -> GF2:
-        cbps = self._cbps
+    def _deinterleave_data(self, x: GF2, rate: Optional[int] = None) -> GF2:
+        if rate is None:
+            rate = self._rate
+
+        rate_parameter = plcp.rate_parameter(rate)
+
+        bpsc = rate_parameter.bpsc
+        cbps = rate_parameter.cbps
 
         x = _chunk_data(x, cbps)
 
-        interleaver = Interleaver(bpsc=self._bpsc, cbps=cbps)
+        interleaver = Interleaver(bpsc=bpsc, cbps=cbps)
 
         y = interleaver.reverse(x)
 
         return y.flatten()
 
-    def _demodulate_data(self, x: GF2, rate: int) -> ndarray:
+    def _demodulate_data(self, x: GF2, rate: Optional[int] = None) -> ndarray:
+        if rate is None:
+            rate = self._rate
+
         bpsc = plcp.rate_parameter(rate).bpsc
 
         x = demodulate(x, rate)
@@ -182,6 +197,8 @@ class Tx:
 
         signal = Signal(rate, self._length)
         signal = encode_signal(signal)
+        signal = self._apply_convolutional_encoder(signal)
+        signal = self._interleave_data(signal, 6)
         signal = self._modulate_data(signal, 6)
 
         data = self._encode_data(x)
@@ -189,7 +206,7 @@ class Tx:
         data = self._apply_convolutional_encoder(data)
         data = self._puncture_data(data)
         data = self._interleave_data(data)
-        data = self._modulate_data(data, rate)
+        data = self._modulate_data(data)
 
         return np.concatenate([signal, data])
 
@@ -220,18 +237,27 @@ class Tx:
 
         return data
 
-    def _interleave_data(self, x: GF2) -> GF2:
-        cbps = self._cbps
+    def _interleave_data(self, x: GF2, rate: Optional[int] = None) -> GF2:
+        if rate is None:
+            rate = self._rate
+
+        rate_parameter = plcp.rate_parameter(rate)
+
+        bpsc = rate_parameter.bpsc
+        cbps = rate_parameter.cbps
 
         x = _chunk_data(x, cbps)
 
-        interleaver = Interleaver(bpsc=self._bpsc, cbps=cbps)
+        interleaver = Interleaver(bpsc=bpsc, cbps=cbps)
 
         y = interleaver.forward(x)
 
         return y.flatten()
 
-    def _modulate_data(self, x: GF2, rate: int) -> ndarray:
+    def _modulate_data(self, x: GF2, rate: Optional[int] = None) -> ndarray:
+        if rate is None:
+            rate = self._rate
+
         bpsc = plcp.rate_parameter(rate).bpsc
 
         x = x.reshape(-1, bpsc)
@@ -260,6 +286,7 @@ class Tx:
     def _update_state(self, x: ndarray, rate: int) -> None:
         assert x.dtype == np.uint8
 
+        self._rate = rate
         self._length = len(x)
 
         rate_parameter = plcp.rate_parameter(rate)
