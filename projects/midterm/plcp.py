@@ -155,7 +155,10 @@ _RATE_PARAMETERS: Final[dict[int, RateParameter]] = {
 }
 
 
+# fmt: off
+SIGNAL_BITS:  Final[int] = 24
 SERVICE_BITS: Final[int] = 16
+# fmt: on
 
 
 class ConvolutionalEncoder:
