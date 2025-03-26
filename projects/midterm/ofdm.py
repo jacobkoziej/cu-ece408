@@ -110,7 +110,10 @@ def long_training_sequence() -> ndarray:
 
     l = ifft(ifftshift(L, axes=-1))  # noqa: E741
 
-    return np.tile(l, LONG_TRAINING_SYMBOLS)
+    return add_circular_prefix(
+        np.tile(l, LONG_TRAINING_SYMBOLS),
+        CIRCULAR_PREFIX * 2,
+    )
 
 
 def modulate(d: ndarray) -> ndarray:
