@@ -24,6 +24,7 @@
           ps: with ps; [
             einops
             galois
+            jupyter
             matplotlib
             miss-hit
             numpy
