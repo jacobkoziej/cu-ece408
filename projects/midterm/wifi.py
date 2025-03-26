@@ -28,9 +28,16 @@ from modulate import (
 )
 from ofdm import (
     FRAME_SIZE,
+    LONG_TRAINING_SIZE,
+    LONG_TRAINING_SYMBOLS,
+    LONG_TRAINING_SYMBOL_SAMPLES,
+    SHORT_TRAINING_SIZE,
+    SHORT_TRAINING_SYMBOLS,
+    SHORT_TRAINING_SYMBOL_SAMPLES,
     SUBCARRIERS_DATA,
     add_circular_prefix,
     apply_window,
+    carrier_frequency_offset,
     remove_circular_prefix,
     unapply_window,
 )
@@ -73,6 +80,28 @@ def _chunk_data(x: GF2, cbps: int) -> GF2:
 
 class Rx:
     def __call__(self, x: ndarray) -> Optional[ndarray]:
+        short_training_sequence = x[:SHORT_TRAINING_SIZE]
+
+        coarse_offset = carrier_frequency_offset(
+            short_training_sequence,
+            SHORT_TRAINING_SYMBOL_SAMPLES,
+            SHORT_TRAINING_SYMBOLS - 1,
+        )
+
+        x *= np.exp(-1j * coarse_offset * np.arange(x.size))
+        x = x[SHORT_TRAINING_SIZE:]
+
+        long_training_sequence = remove_circular_prefix(x[:LONG_TRAINING_SIZE])
+
+        fine_offset = carrier_frequency_offset(
+            long_training_sequence,
+            LONG_TRAINING_SYMBOL_SAMPLES,
+            LONG_TRAINING_SYMBOLS - 1,
+        )
+
+        x *= np.exp(-1j * fine_offset * np.arange(x.size))
+        x = x[LONG_TRAINING_SIZE:]
+
         # fmt: off
         signal = x[:FRAME_SIZE]
         data   = x[FRAME_SIZE:]
@@ -212,6 +241,9 @@ class Tx:
     def __call__(self, x: ndarray, rate: int) -> ndarray:
         self._update_state(x, rate)
 
+        short_training_sequence = apply_window(ofdm.short_training_sequence())
+        long_training_sequence = apply_window(ofdm.long_training_sequence())
+
         signal = Signal(rate, self._length)
         signal = encode_signal(signal)
         signal = self._apply_convolutional_encoder(signal)
@@ -227,7 +259,14 @@ class Tx:
         data = self._modulate_data(data)
         data = self._ofdm_modulate_data(data)
 
-        return np.concatenate([signal, data])
+        return np.concatenate(
+            [
+                short_training_sequence,
+                long_training_sequence,
+                signal,
+                data,
+            ],
+        )
 
     def __init__(self, *, rng: Generator = None):
         if rng is None:
