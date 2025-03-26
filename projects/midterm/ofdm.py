@@ -42,8 +42,11 @@ _DATA_INDICES[-5:] = False
 
 _PILOTS: ndarray = np.array([1, 1, 1, -1])
 
+CIRCULAR_PREFIX: Final[int] = 16
+FRAME_SIZE: Final[int] = _FFT_SIZE + CIRCULAR_PREFIX
 
-def add_circular_prefix(x: ndarray, size: int = 16) -> ndarray:
+
+def add_circular_prefix(x: ndarray, size: int = CIRCULAR_PREFIX) -> ndarray:
     assert size > 0
     assert size < x.shape[-1]
 
