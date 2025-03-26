@@ -3,6 +3,7 @@
 # plcp.py -- OFDM PLCP sublayer
 # Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
+import galois
 import numpy as np
 
 from collections import deque
@@ -273,7 +274,7 @@ class Scrambler:
 
         return y.squeeze()
 
-    def __init__(self, state: GF2):
+    def __init__(self, state: int):
         _ = self.seed(state)
 
     def _step(self, x: GF2) -> GF2:
@@ -294,8 +295,8 @@ class Scrambler:
 
         return state
 
-    def seed(self, state: GF2) -> GF2:
-        assert len(state) == self.k - 1
+    def seed(self, state: int) -> GF2:
+        state = galois.Poly.Int(state, field=GF2).coefficients(self.k - 1)
 
         self._init_state = state.copy()
 

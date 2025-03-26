@@ -10,7 +10,6 @@ from typing import (
     Optional,
 )
 
-from galois import GF2
 from numpy import ndarray
 from numpy.fft import (
     fft,
@@ -121,7 +120,7 @@ def modulate(d: ndarray) -> ndarray:
 def pilots(frames: int) -> ndarray:
     assert frames > 0
 
-    scrambler = Scrambler(GF2.Ones(Scrambler.k - 1))
+    scrambler = Scrambler(0o177)
     polarity = np.zeros(frames, dtype=np.int8)
 
     for i in range(frames):

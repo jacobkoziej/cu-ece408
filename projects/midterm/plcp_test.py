@@ -82,7 +82,7 @@ def test_scrambler() -> None:
         ],
     )
 
-    scrambler = Scrambler(GF2.Ones(Scrambler.k - 1))
+    scrambler = Scrambler(0o177)
 
     x = GF2(0)
 
