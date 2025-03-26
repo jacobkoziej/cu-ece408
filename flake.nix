@@ -24,6 +24,7 @@
           ps: with ps; [
             einops
             galois
+            matplotlib
             miss-hit
             numpy
             pytest
