@@ -29,6 +29,7 @@
             matplotlib
             miss-hit
             numpy
+            papermill
             pytest
             pytest-xdist
             scipy
