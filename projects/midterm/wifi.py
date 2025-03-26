@@ -22,8 +22,10 @@ from bit import (
     unpackbits,
 )
 from plcp import (
+    SCRAMBLER_SERVICE_BITS,
     SERVICE_BITS,
     SIGNAL_BITS,
+    Scrambler,
     Signal,
     decode_signal,
     encode_signal,
@@ -58,45 +60,69 @@ class Rx:
         if signal is None:
             return None
 
-        rate_parameter = plcp.rate_parameter(signal.rate)
+        self._update_state(signal)
 
-        length = signal.length
+        state = self._estimate_scrambler_state(data[:SCRAMBLER_SERVICE_BITS])
+        data = self._descramble_data(data, state)
 
-        dbps = rate_parameter.dbps
+        y = self._decode_data(data)
 
-        n_data = _calculate_data_bits(length, dbps)
-        n_pad = _calculate_pad_bits(length, n_data)
+        return y
 
-        psdu = data[SERVICE_BITS : -(TAIL_BITS + n_pad)]
+    def _decode_data(self, data: GF2) -> ndarray:
+        psdu = data[SERVICE_BITS : -(TAIL_BITS + self._n_pad)]
 
         y = packbits(psdu.reshape(-1, 8))
 
         return y
 
+    def _descramble_data(self, data: GF2, state: int) -> ndarray:
+        scrambler = Scrambler(state)
+
+        descrambled = scrambler(data)
+
+        n_pad = self._n_pad
+
+        descrambled[-(TAIL_BITS + n_pad) : -n_pad] = 0
+
+        return descrambled
+
+    def _estimate_scrambler_state(self, service: GF2) -> int:
+        scrambler = Scrambler(0)
+
+        zeros = GF2.Zeros(service.shape)
+
+        for state in range(1, 1 << (Scrambler.k - 1)):
+            scrambler.seed(state)
+
+            descrambled = scrambler(service)
+
+            if np.all(descrambled == zeros):
+                break
+
+        return state
+
+    def _update_state(self, signal: Signal) -> None:
+        self._rate = signal.rate
+        self._length = signal.length
+
+        rate_parameter = plcp.rate_parameter(self._rate)
+
+        self._dbps = rate_parameter.dbps
+
+        self._n_data = _calculate_data_bits(self._length, self._dbps)
+        self._n_pad = _calculate_pad_bits(self._length, self._n_data)
+
 
 class Tx:
     def __call__(self, x: ndarray, rate: int) -> ndarray:
-        assert x.dtype == np.uint8
+        self._update_state(x, rate)
 
-        length = len(x)
-
-        signal = Signal(rate, length)
+        signal = Signal(rate, self._length)
         signal = encode_signal(signal)
 
-        service = plcp.service()
-        rate_parameter = plcp.rate_parameter(rate)
-
-        dbps = rate_parameter.dbps
-
-        n_data = _calculate_data_bits(length, dbps)
-        n_pad = _calculate_pad_bits(length, n_data)
-
-        psdu = unpackbits(x).flatten()
-
-        data = GF2.Zeros(n_data)
-
-        data[0:SERVICE_BITS] = service
-        data[SERVICE_BITS : -(TAIL_BITS + n_pad)] = psdu
+        data = self._encode_data(x)
+        data = self._scramble_data(data)
 
         return np.concatenate([signal, data]).astype(np.uint8)
 
@@ -105,3 +131,38 @@ class Tx:
             rng = np.random.default_rng()
 
         self.rng = rng
+
+    def _encode_data(self, x: ndarray) -> GF2:
+        data = GF2.Zeros(self._n_data)
+
+        psdu = unpackbits(x).flatten()
+
+        data[0:SERVICE_BITS] = plcp.service()
+        data[SERVICE_BITS : -(TAIL_BITS + self._n_pad)] = psdu
+
+        return data
+
+    def _scramble_data(self, x: GF2) -> GF2:
+        seed = int(self.rng.integers(1, 1 << (Scrambler.k - 1)))
+
+        scrambler = Scrambler(seed)
+
+        scrambled = scrambler(x)
+
+        n_pad = self._n_pad
+
+        scrambled[-(TAIL_BITS + n_pad) : -n_pad] = 0
+
+        return scrambled
+
+    def _update_state(self, x: ndarray, rate: int) -> None:
+        assert x.dtype == np.uint8
+
+        self._length = len(x)
+
+        rate_parameter = plcp.rate_parameter(rate)
+
+        self._dbps = rate_parameter.dbps
+
+        self._n_data = _calculate_data_bits(self._length, self._dbps)
+        self._n_pad = _calculate_pad_bits(self._length, self._n_data)
