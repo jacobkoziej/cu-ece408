@@ -46,6 +46,7 @@
               pre-commit
               python3-pkgs
               ruff
+              scons
               shfmt
               toml-sort
               treefmt
