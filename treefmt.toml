@@ -81,4 +81,5 @@ excludes = [
   ".editorconfig",
   "LICENSE.md",
   "miss_hit.cfg",
+  "site_scons/site_tools/github/jacobkoziej/scons-tools",
 ]
