@@ -79,3 +79,23 @@
 # state and clock and XOR our data bitstream with the least significant
 # bit of the shift register. To descramble, we reset the initial state
 # and repeat the process.
+
+# %% [markdown]
+# ## Convolutional Encoder
+#
+# To encode the scrambled bitstream, we utilize a convolutional coder
+# defined over $\mathbb{F}_2$ with the industry standard generator
+# polynomials, $g_0 = 133_8$ and $g_1 = 171_8$, of rate $R = 1/2$,
+# meaning that for every one bit of data, we encode two bits.
+#
+# The benefit of a convolutional code over a block code is that they
+# handle burst errors better since they rely on an internal state to
+# "remember" previously encoded bits to aid in error correction using a
+# reverse process like the Viterbi algorithm.
+#
+# In our case, the two polynomials have a constraint length of $K = 7$,
+# meaning it has an internal "memory" of six, or $2^6$ states. Since we
+# want a deterministic way of decoding our encoded bitstream, we, by
+# convention, start and end our bitstream in the zero state. We achieve
+# this by sending a sequence of six zeros which perfectly coincides with
+# the `TAIL` field.
