@@ -425,3 +425,40 @@ plt.show()
 # Once identified, we then look at the argument of the minima of the
 # possible input for the state. This then yields the predicted bit along
 # with the best previous state.
+
+# %% [markdown]
+# # Results
+#
+# To evaluate the performance of the TX/RX pair, we'll look at the bit
+# error rate (BER) at different signal-to-noise ratios (SNRs). It is a
+# fair assumption to make that we can perfectly invert our channel,
+# however, to simulate noise, I'll be including additive white Gaussian
+# noise (AWGN) since this cannot be removed by the channel inversion
+# process. Each plot is the result of 32 random bytes being transmitted
+# at some SNR, averaged over 512 iterations.
+
+# %% tags=["hide-input"]
+rate = [6, 9, 12, 18, 24, 36, 48, 54]
+
+snr = []
+ber = []
+
+for r in rate:
+    x = np.genfromtxt(
+        f"simulation.d/{r}.csv",
+        skip_header=True,
+        delimiter=",",
+    ).T
+    snr.append(x[0])
+    ber.append(x[1])
+
+snr = np.array(snr).T
+ber = np.array(ber).T
+
+plt.figure()
+plt.semilogy(snr, ber)
+plt.grid(True)
+plt.legend(rate, title="Rate")
+plt.xlabel("SNR [dB]")
+plt.ylabel("BER")
+plt.show()
