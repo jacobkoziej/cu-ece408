@@ -300,7 +300,7 @@ plt.title("OFDM with Cyclic Prefix")
 plt.show()
 
 # %% [markdown]
-# ### Training Sequences
+# ### PLCP Preamble (Training Sequences)
 #
 # Since our local and foreign oscillators are not perfect, when taken
 # from baseband to bandpass and then back to baseband, our signal will
