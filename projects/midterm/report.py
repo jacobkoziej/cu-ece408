@@ -195,3 +195,18 @@ plt.axvline(0, color="black", linewidth=0.5)
 plt.xlim(-1.5, 1.5)
 plt.ylim(-1.5, 1.5)
 plt.show()
+
+# %% [markdown]
+# ## OFDM
+#
+# Orthogonal Frequency-Division Multiplexing (OFDM) is a modulation
+# technique that allows us to transmit data by splitting what would be a
+# high-speed channel into multiple, low-speed channels with orthogonal
+# subcarriers, improving the robustness of data transmission.
+#
+# In our case, we start with a DFT of size 64, and of these bin
+# frequencies, we designate four to be pilot signals, and 48 for data.
+# The remaining bins are left unused. The reason for a DFT of size 64 is
+# twofold: we assume a digital frequency normalized to 20 MHz and FFTs
+# of size 64 are common. We enumerate the bins starting at negative
+# frequencies using indices -31 through 32, where index 0 refers to DC.
