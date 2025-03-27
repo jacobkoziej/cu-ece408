@@ -330,3 +330,27 @@ plt.show()
 # After we calculate $\varphi$, it is sufficient to multiply samples by
 # $e^{-1j\varphi n}$, where $n$ is the sample index, to remove the
 # carrier offset.
+
+# %% [markdown]
+# ### Time Windowing
+#
+# To avoid ISI between OFDM frames, a time windowing function gets
+# applied to each of the frames. We define this function as:
+#
+# $$
+# w_T(t)
+# =
+# \begin{cases}
+# \sin^2\left(\frac{\pi}{2} (0.5 + t / T_{TR})\right),
+# & -T_{TR} / 2 < t < T_{TR} / 2 \\
+# 1,
+# & T_{TR} / 2 \le t < T - T_{TR} / 2 \\
+# \sin^2\left(\frac{\pi}{2} (0.5 - (t - T) / T_{TR})\right),
+# & T - T_{TR} / 2 \le t < T + T_{TR} / 2 \\
+# \end{cases}
+# $$
+#
+# where $T$ is the duration of the frame and $T_{TR}$ is the roll-of
+# time. Since we normalize our digital frequency to 20 MHz, this
+# function nicely translates to halving the first and last sample of
+# each frame.
