@@ -61,3 +61,21 @@
 #   reserved (and are always encoded as zero). The first six bits of
 #   this field are always zero and allow the receiver to determine the
 #   initial state of the PLCP `DATA` scrambler.
+
+# %% [markdown]
+# ## PLCP `DATA` Scrambler
+#
+# We define a frame synchronous scrambler over $\mathbb{F}_2$ with the
+# polynomial $S(x) = x^7 + x^4 + 1$. This polynomial can be realized as
+# a simple shift register of seven elements with feedback, clocked for
+# every input bit. By its definition, this polynomial produces a
+# pseudo-random 127-bit sequence.
+#
+# Adding a scrambler may seem like a strange thing, but it introduces
+# entropy into our signal (for example, it lets us work around a user
+# that insists on sending vast quantities of zeros) to *hopefully* aid
+# in our data successfully finding its way to the receiver. To scramble
+# our data, we initialize the shift register with a non-zero random
+# state and clock and XOR our data bitstream with the least significant
+# bit of the shift register. To descramble, we reset the initial state
+# and repeat the process.
