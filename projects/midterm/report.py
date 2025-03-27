@@ -24,6 +24,9 @@ from fractions import Fraction
 
 from galois import GF2
 
+# %%
+rng: np.random.Generator = np.random.default_rng(0x509355EF)
+
 # %% [markdown]
 # For this project, I decided to write a TX/RX pair that implements most
 # of IEEE Std 802.11a-1999's physical (PHY) layer, specifically the
@@ -238,4 +241,60 @@ plt.stem(dft_bin, np.abs(s))
 plt.xlabel("DFT Bin")
 plt.ylabel("Magnitude")
 plt.title("Pilot Subcarriers")
+plt.show()
+
+# %% [markdown]
+# ### Cyclic Prefix
+#
+# To mitigate the effect of inter-symbol interference (ISI), once the
+# frequency domain representation of the encoded data is brought into
+# the time domain, a cyclic prefix gets inserted. This is nothing more
+# than taking the last $N$ output samples and prepending them to the
+# front of the signal. This segment of the signal is called the "guard
+# interval."
+#
+# In adding this prefix, we essentially change the linear convolution
+# performed by our channel into a cyclic one (given that the channel
+# group delay does not exceed the length of the guard interval). When
+# decoding the signal, this prefix gets discarded as its sole purpose is
+# for ISI protection in transit.
+
+# %% tags=["hide-input"]
+b = rng.integers(0, 1 << 4, 48, dtype=np.uint8)
+d = modulate.modulate(b, 24)
+s = ofdm.modulate(d)
+
+plt.figure()
+plt.stem(s.real)
+plt.stem(s.imag, linefmt="r-", markerfmt="ro")
+plt.legend(["In-phase", "Quadrature"])
+plt.xlabel("Sample")
+plt.ylabel("Value")
+plt.title("OFDM without Cyclic Prefix")
+plt.show()
+
+# %% tags=["hide-input"]
+s = ofdm.add_circular_prefix(s, ofdm.CIRCULAR_PREFIX)
+
+plt.figure()
+plt.stem(s.real)
+plt.stem(s.imag, linefmt="r-", markerfmt="ro")
+plt.legend(["In-phase", "Quadrature"])
+plt.fill_between(
+    np.arange(ofdm.CIRCULAR_PREFIX),
+    -0.15,
+    0.15,
+    facecolor="green",
+    alpha=0.25,
+)
+plt.fill_between(
+    s.size - np.arange(ofdm.CIRCULAR_PREFIX) - 1,
+    -0.15,
+    0.15,
+    facecolor="green",
+    alpha=0.25,
+)
+plt.xlabel("Sample")
+plt.ylabel("Value")
+plt.title("OFDM with Cyclic Prefix")
 plt.show()
