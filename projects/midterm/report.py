@@ -354,3 +354,55 @@ plt.show()
 # time. Since we normalize our digital frequency to 20 MHz, this
 # function nicely translates to halving the first and last sample of
 # each frame.
+
+# %% [markdown]
+# # Viterbi Decoder
+#
+# To decode the aforementioned convolutional code, I implemented a
+# hard-decision Viterbi decoder.
+#
+# On instantiation, the decoder will pre-compute all possible states and
+# state transitions given a generator matrix. This is done to avoid
+# having to recompute these values for every step through a trellis.
+#
+# To keep track of the path metric through the trellis, I opted to use a
+# 4D array as it could encapsulate all the information necessary to
+# decode the best path through the trellis. Each of the dimensions kept
+# track of the following:
+#
+# 1) Time index for the trellis.
+# 2) The possible input for the state, where the index into this
+#    dimension coincides with the bit sequence received.
+# 3) The branch state, where the index into this dimension coincides
+#    with the current state.
+# 4) The previous state, where the index of this dimension coincides
+#    with the path metric from the previous states.
+#
+# Each element of this array corresponds to the path metric. Using the
+# implicitly encoded information found in each of the dimensions, it's
+# possible to decode the optimal path. The main downside of my
+# implementation is the sparsity of the use in the last dimension as
+# only every other row gets utilized due to how state transitions get
+# computed. This isn't *too* problematic for convolutional codes where
+# the input is only one bit, but this scales exponentially: $(1/2)^{n}$.
+# A solution would be to remove the $2^\text{nd}$ dimension and
+# implicitly encode this in the last dimension, however, I avoided this
+# due to time constraints.
+#
+# To calculate the branch metrics for each of the paths, we simply
+# compute the Hamming weight between the expected values and received
+# values. The exception to this is when dealing with inserted "dummy"
+# bits following deinterleaving. Since we cannot make any assumption on
+# these values, we exclude punctured bits from the branch metric
+# calculation to improve decoding performance.
+#
+# We initialize the path metrics to $\infty$ with the exception to the
+# zero state and zero bit which take on a value of zero. Since we've
+# agreed ahead of time that all encoded bit sequences are to start and
+# end in the zero state, we can make this assertion. When decoding, we
+# similarly stat decoding at the zero state assuming that the last value
+# received was a zero. To recover the input bit sequence, we simply look
+# at the argument of the minima of the previous state's path metric.
+# Once identified, we then look at the argument of the minima of the
+# possible input for the state. This then yields the predicted bit along
+# with the best previous state.
