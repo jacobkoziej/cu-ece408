@@ -33,6 +33,7 @@
             pytest
             pytest-xdist
             scipy
+            tqdm
           ]
         );
 
