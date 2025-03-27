@@ -12,6 +12,15 @@
 # report.py -- IEEE Std 802.11a-1999
 # Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
+# %%
+import numpy as np
+
+import plcp
+
+from fractions import Fraction
+
+from galois import GF2
+
 # %% [markdown]
 # For this project, I decided to write a TX/RX pair that implements most
 # of IEEE Std 802.11a-1999's physical (PHY) layer, specifically the
@@ -99,3 +108,27 @@
 # convention, start and end our bitstream in the zero state. We achieve
 # this by sending a sequence of six zeros which perfectly coincides with
 # the `TAIL` field.
+
+# %% [markdown]
+# ## Punctured Coding
+#
+# Since we're using a convolutional encoder and decoding our bitstream
+# with error correction, we can take advantage of this receiver-side
+# process and artificially introduce bit errors by "puncturing" our
+# encoded bitstream, increasing bandwidth. On the receiver-side, we
+# simply re-insert "dummy" bits in place of the real bits and decode the
+# bitstream with error correction.
+#
+# For example, a $R = 2/3$ code will encode two bits of input data with
+# three bits (where `-1` corresponds to a punctured bit):
+
+# %% tags=["hide-input"]
+puncturer = plcp.Puncturer(Fraction(2, 3))
+
+punctured = puncturer.forward(GF2.Ones(12))
+depunctured = puncturer.reverse(punctured)
+
+x = np.arange(depunctured.size)
+x[~np.array(depunctured, dtype=np.bool)] = -1
+
+x.reshape(-1, 2).T
