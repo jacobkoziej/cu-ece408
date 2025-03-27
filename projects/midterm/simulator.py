@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 import bit
-import plcp
+import ppdu
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -125,7 +125,7 @@ def sim(
     noise += rng.normal(0, noise_scale, signal.shape) + 0j
     noise += 1j * rng.normal(0, noise_scale, signal.shape)
 
-    received = rx(signal + noise, plcp.Signal(rate, data.size))
+    received = rx(signal + noise, ppdu.Signal(rate, data.size))
 
     return data, received
 

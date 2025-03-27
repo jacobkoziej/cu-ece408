@@ -6,7 +6,7 @@
 import numpy as np
 
 import ofdm
-import plcp
+import ppdu
 
 from math import ceil
 from typing import (
@@ -41,7 +41,7 @@ from ofdm import (
     remove_circular_prefix,
     unapply_window,
 )
-from plcp import (
+from ppdu import (
     ConvolutionalEncoder,
     GENERATOR_CONSTRAINT_LENGTH,
     GENERATOR_POLYNOMIALS,
@@ -166,7 +166,7 @@ class Rx:
         if rate is None:
             rate = self._rate
 
-        rate_parameter = plcp.rate_parameter(rate)
+        rate_parameter = ppdu.rate_parameter(rate)
 
         bpsc = rate_parameter.bpsc
         cbps = rate_parameter.cbps
@@ -183,7 +183,7 @@ class Rx:
         if rate is None:
             rate = self._rate
 
-        bpsc = plcp.rate_parameter(rate).bpsc
+        bpsc = ppdu.rate_parameter(rate).bpsc
 
         x = demodulate(x, rate)
 
@@ -229,7 +229,7 @@ class Rx:
         self._rate = signal.rate
         self._length = signal.length
 
-        rate_parameter = plcp.rate_parameter(self._rate)
+        rate_parameter = ppdu.rate_parameter(self._rate)
 
         self._coding_rate = rate_parameter.coding_rate
 
@@ -294,7 +294,7 @@ class Tx:
 
         psdu = unpackbits(x).flatten()
 
-        data[0:SERVICE_BITS] = plcp.service()
+        data[0:SERVICE_BITS] = ppdu.service()
         data[SERVICE_BITS : -(TAIL_BITS + self._n_pad)] = psdu
 
         return data
@@ -303,7 +303,7 @@ class Tx:
         if rate is None:
             rate = self._rate
 
-        rate_parameter = plcp.rate_parameter(rate)
+        rate_parameter = ppdu.rate_parameter(rate)
 
         bpsc = rate_parameter.bpsc
         cbps = rate_parameter.cbps
@@ -320,7 +320,7 @@ class Tx:
         if rate is None:
             rate = self._rate
 
-        bpsc = plcp.rate_parameter(rate).bpsc
+        bpsc = ppdu.rate_parameter(rate).bpsc
 
         x = x.reshape(-1, bpsc)
         x = packbits(x)
@@ -358,7 +358,7 @@ class Tx:
         self._rate = rate
         self._length = len(x)
 
-        rate_parameter = plcp.rate_parameter(rate)
+        rate_parameter = ppdu.rate_parameter(rate)
 
         self._coding_rate = rate_parameter.coding_rate
 

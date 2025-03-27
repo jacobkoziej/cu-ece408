@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# plcp.py -- OFDM PLCP sublayer
+# ppdu.py -- Physical layer Protocol Data Unit frame format
 # Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
 import galois

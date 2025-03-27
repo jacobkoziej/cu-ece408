@@ -19,7 +19,7 @@ from numpy.fft import (
 )
 from scipy.signal import resample
 
-from plcp import Scrambler
+from ppdu import Scrambler
 
 CIRCULAR_PREFIX: Final[int] = 16
 

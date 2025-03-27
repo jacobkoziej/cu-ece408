@@ -18,7 +18,7 @@ import numpy as np
 
 import modulate
 import ofdm
-import plcp
+import ppdu
 
 from fractions import Fraction
 
@@ -148,7 +148,7 @@ rng: np.random.Generator = np.random.default_rng(0x509355EF)
 # three bits (where `-1` corresponds to a punctured bit):
 
 # %% tags=["hide-input"]
-puncturer = plcp.Puncturer(Fraction(2, 3))
+puncturer = ppdu.Puncturer(Fraction(2, 3))
 
 punctured = puncturer.forward(GF2.Ones(12))
 depunctured = puncturer.reverse(punctured)
@@ -178,7 +178,7 @@ x.reshape(-1, 2).T
 # %% tags=["hide-input"]
 bpsc = 1
 cbps = 48
-interleaver = plcp.Interleaver(bpsc=bpsc, cbps=cbps)
+interleaver = ppdu.Interleaver(bpsc=bpsc, cbps=cbps)
 
 interleaved = interleaver.forward(np.arange(cbps))
 

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# plcp.py -- OFDM PLCP sublayer tests
+# ppdu.py -- Physical layer Protocol Data Unit frame format tests
 # Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
 import numpy as np
@@ -10,7 +10,7 @@ from fractions import Fraction
 from galois import GF2
 from numpy.random import Generator
 
-from plcp import (
+from ppdu import (
     Interleaver,
     Puncturer,
     Scrambler,

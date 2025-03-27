@@ -12,7 +12,7 @@ from numpy import ndarray
 from numpy.random import Generator
 from pytest import FixtureRequest
 
-from plcp import rate_parameter
+from ppdu import rate_parameter
 
 
 @dataclass(frozen=True)

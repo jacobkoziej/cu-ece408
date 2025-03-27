@@ -9,7 +9,7 @@ import pytest
 from galois import GF2
 from numpy.random import Generator
 
-from plcp import ConvolutionalEncoder
+from ppdu import ConvolutionalEncoder
 from viterbi import (
     Viterbi,
     poly2matrix,

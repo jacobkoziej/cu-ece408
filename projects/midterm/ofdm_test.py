@@ -12,7 +12,7 @@ import ofdm
 from numpy import ndarray
 
 from conftest import Data
-from plcp import rate_parameter
+from ppdu import rate_parameter
 from ofdm import (
     SHORT_TRAINING_SYMBOLS,
     SHORT_TRAINING_SYMBOL_SAMPLES,
