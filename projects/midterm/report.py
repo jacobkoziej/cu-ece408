@@ -38,3 +38,26 @@
 #          | 12 symbols    | One OFDM Symbol | Variable OFDM Symbols       |
 #          +---------------+-----------------+-----------------------------+
 # ```
+
+# %% [markdown]
+# ## PLCP Header
+#
+# We first turn our attention to the Physical Layer Convergence Protocol
+# (PLCP) header as it serves as a great entry point to understanding how
+# to decode a PPDU frame.
+#
+# - The `RATE` field specifies the encoded rate of the `DATA` field of
+#   our PPDU frame. Importantly, this tells us the modulation, coding
+#   rate ($R$), coded bits per suhcarrier ($N_{BPSC}$), coded bits per
+#   OFDM symbol ($N_{CBPS}$), and data bits per OFDM symbol
+#   ($N_{DBPS}$).
+# - The `RESERVED` field is reserved and always encoded as zero.
+# - The `LENGTH` field encodes the number of bytes encoded in the
+#   current PPDU frame.
+# - The `PARITY` field ensures even parity with the preceding 15 bits.
+# - The `TAIL` field ensures that our convolutional coder returns back
+#   to the zero state.
+# - The `SERVICE` field consists of 16 bits, of which the last 10 are
+#   reserved (and are always encoded as zero). The first six bits of
+#   this field are always zero and allow the receiver to determine the
+#   initial state of the PLCP `DATA` scrambler.
