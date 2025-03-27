@@ -13,9 +13,11 @@
 # Copyright (C) 2025  Jacob Koziej <jacobkoziej@gmail.com>
 
 # %%
+import matplotlib.pyplot as plt
 import numpy as np
 
 import plcp
+import modulate
 
 from fractions import Fraction
 
@@ -158,3 +160,38 @@ interleaver = plcp.Interleaver(bpsc=bpsc, cbps=cbps)
 interleaved = interleaver.forward(np.arange(cbps))
 
 interleaved.reshape(-1, 8)
+
+# %% [markdown]
+# ## Subcarrier Modulation Mapping
+#
+# We modulate data with either BPSK, QPSK, 16-QAM, or 64-QAM gray-coded
+# constellations depending of the value of the `RATE` field. Since each
+# constellation encodes a different amount of bits, each must also be
+# properly scaled such that power stays uniform during transmission.
+# We can demodulate by rescaling the constellation and the performing
+# hard decisions on each symbol.
+#
+# As an example, let's look at the 16-QAM constellation which is
+# associated with a `RATE` of 24:
+
+# %% tags=["hide-input"]
+x = np.arange(1 << 4, dtype=np.uint8)
+s = modulate.modulate(x, 24)
+
+plt.figure(figsize=(6, 6))
+plt.scatter(s.real, s.imag, color="red")
+for x, s in zip(x, s):
+    plt.annotate(
+        f"0b{int(x):04b}",
+        (s.real, s.imag),
+        xytext=(-2, 1),
+        textcoords="offset fontsize",
+    )
+plt.xlabel("In-phase")
+plt.ylabel("Quadrature")
+plt.title("16-QAM")
+plt.axhline(0, color="black", linewidth=0.5)
+plt.axvline(0, color="black", linewidth=0.5)
+plt.xlim(-1.5, 1.5)
+plt.ylim(-1.5, 1.5)
+plt.show()
