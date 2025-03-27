@@ -298,3 +298,35 @@ plt.xlabel("Sample")
 plt.ylabel("Value")
 plt.title("OFDM with Cyclic Prefix")
 plt.show()
+
+# %% [markdown]
+# ### Training Sequences
+#
+# Since our local and foreign oscillators are not perfect, when taken
+# from baseband to bandpass and then back to baseband, our signal will
+# incur a carrier frequency offset, which translates to a constant
+# rotation in the complex plane between samples. This renders decoding a
+# useless exercise as symbols will map incorrectly inside of
+# constellations.
+#
+# To work around this, we transmit training sequences of predefined
+# symbols that are mutually agreed upon. We first transmit a sequence of
+# ten "short" symbols which we can utilize to determine a coarse
+# frequency offset. Then we transmit a two "long" symbols over the same
+# time period for calculating a fine frequency offset.
+#
+# When decoding, we can simply average the phase offset between
+# associated samples between symbols with the following:
+#
+# $$
+# \varphi
+# =
+# \frac{1}{N}\arg\left(\Sigma^{N - 1}_{i = 0} S_i^* S_{i + N}\right),
+# $$
+#
+# where $N$ is equal to the number of samples per symbol and $S_i$ is
+# the $i^\text{th}$ sample of the received signal in the time domain.
+# This can be further improved by averaging $\varphi$ between symbols.
+# After we calculate $\varphi$, it is sufficient to multiply samples by
+# $e^{-1j\varphi n}$, where $n$ is the sample index, to remove the
+# carrier offset.
