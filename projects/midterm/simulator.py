@@ -43,7 +43,7 @@ def main() -> None:
     parser.add_argument(
         "-i",
         "--iterations",
-        default=128,
+        default=512,
         type=int,
     )
     parser.add_argument(
