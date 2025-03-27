@@ -78,6 +78,25 @@ rng: np.random.Generator = np.random.default_rng(0x509355EF)
 #   initial state of the PLCP `DATA` scrambler.
 
 # %% [markdown]
+# ### `RATE`-dependent Parameters
+#
+# ```
+# +-----------+------------+-------------+------+------+------+
+# | Rate      | Modulation | Coding Rate | BPSC | CBPS | DBPS |
+# | (Mbits/s) |            | (R)         |      |      |      |
+# +-----------+------------+-------------+------+------+------+
+# | 6         | BPSK       | 1/2         | 1    | 48   | 24   |
+# | 9         | BPSK       | 3/4         | 1    | 48   | 36   |
+# | 12        | QPSK       | 1/2         | 2    | 96   | 48   |
+# | 18        | QPSK       | 3/4         | 2    | 96   | 72   |
+# | 24        | 16-QAM     | 1/2         | 4    | 192  | 96   |
+# | 36        | 16-QAM     | 3/4         | 4    | 192  | 144  |
+# | 48        | 64-QAM     | 2/3         | 6    | 288  | 192  |
+# | 54        | 64-QAM     | 3/4         | 6    | 288  | 216  |
+# +-----------+------------+-------------+------+------+------+
+# ```
+
+# %% [markdown]
 # ## PLCP `DATA` Scrambler
 #
 # We define a frame synchronous scrambler over $\mathbb{F}_2$ with the
