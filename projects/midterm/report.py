@@ -152,7 +152,7 @@ x.reshape(-1, 2).T
 # example, let us look at the output of interleaving a block of
 # $N_{CBPS} = 48$ bits:
 
-# %%
+# %% tags=["hide-input"]
 bpsc = 1
 cbps = 48
 interleaver = plcp.Interleaver(bpsc=bpsc, cbps=cbps)
