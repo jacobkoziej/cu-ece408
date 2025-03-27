@@ -16,8 +16,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import plcp
 import modulate
+import ofdm
+import plcp
 
 from fractions import Fraction
 
@@ -210,3 +211,31 @@ plt.show()
 # twofold: we assume a digital frequency normalized to 20 MHz and FFTs
 # of size 64 are common. We enumerate the bins starting at negative
 # frequencies using indices -31 through 32, where index 0 refers to DC.
+
+# %% [markdown]
+# ### Pilot Subcarriers
+#
+# The pilots serve a crucial role in decoding as they allow a receiver
+# to estimate the effects of a channel and invert it. Since OFDM
+# operates in the frequency domain, it is sufficient to just divide
+# through each of the bins with the channel estimate to invert the
+# channel.
+#
+# One important detail is that the pilots themselves are scrambled
+# (inverted depending on the state of the aforementioned scrambler when
+# seeded with $177_8$). When the output of the scrambler is one, the
+# pilots are inverted. The reason for doing so is to prevent spectral
+# lines from showing up.
+
+# %% tags=["hide-input"]
+d = np.zeros(48)
+s = np.fft.ifft(ofdm.modulate(d), axis=-1)
+
+dft_bin = np.arange(s.size) - (s.size // 2) + 1
+
+plt.figure()
+plt.stem(dft_bin, np.abs(s))
+plt.xlabel("DFT Bin")
+plt.ylabel("Magnitude")
+plt.title("Pilot Subcarriers")
+plt.show()
