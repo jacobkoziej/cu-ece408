@@ -132,3 +132,29 @@ x = np.arange(depunctured.size)
 x[~np.array(depunctured, dtype=np.bool)] = -1
 
 x.reshape(-1, 2).T
+
+# %% [markdown]
+# ## Interleaving
+#
+# In an effort to combat burst errors, we apply an interleaver to our
+# data. We apply two permutations to the bitstream:
+#
+# - The first ensures that adjacent coded bits are mapped onto
+#   non-adjacent subcarriers.
+# - The second ensures that adjacent coded bits are mapped alternately
+#   onto less and more significant bits of the constellations to combat
+#   long runs of low reliability.
+#
+# By applying this strategy, we can treat bit errors as independent
+# events on the side of the receiver following deinterleaving. As an
+# example, let us look at the output of interleaving a block of
+# $N_{CBPS} = 48$ bits:
+
+# %%
+bpsc = 1
+cbps = 48
+interleaver = plcp.Interleaver(bpsc=bpsc, cbps=cbps)
+
+interleaved = interleaver.forward(np.arange(cbps))
+
+interleaved.reshape(-1, 8)
