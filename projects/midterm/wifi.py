@@ -79,7 +79,11 @@ def _chunk_data(x: GF2, cbps: int) -> GF2:
 
 
 class Rx:
-    def __call__(self, x: ndarray) -> Optional[ndarray]:
+    def __call__(
+        self,
+        x: ndarray,
+        signal: Optional[Signal] = None,
+    ) -> Optional[ndarray]:
         short_training_sequence = x[:SHORT_TRAINING_SIZE]
 
         coarse_offset = carrier_frequency_offset(
@@ -102,19 +106,19 @@ class Rx:
         x *= np.exp(-1j * fine_offset * np.arange(x.size))
         x = x[LONG_TRAINING_SIZE:]
 
-        # fmt: off
-        signal = x[:FRAME_SIZE]
-        data   = x[FRAME_SIZE:]
-        # fmt: on
-
-        signal = self._ofdm_demodulate(signal)
-        signal = self._demodulate(signal, 6)
-        signal = self._deinterleave(signal, 6)
-        signal = self._apply_viterbi_decoder(signal)
-        signal = decode_signal(signal)
+        data = x[FRAME_SIZE:]
 
         if signal is None:
-            return None
+            signal = x[:FRAME_SIZE]
+
+            signal = self._ofdm_demodulate(signal)
+            signal = self._demodulate(signal, 6)
+            signal = self._deinterleave(signal, 6)
+            signal = self._apply_viterbi_decoder(signal)
+            signal = decode_signal(signal)
+
+            if signal is None:
+                return None
 
         self._update_state(signal)
 
