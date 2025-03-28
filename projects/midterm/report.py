@@ -469,3 +469,13 @@ plt.show()
 # Viterbi implementation based on hard decision coding falls apart on
 # any error encountered causing the code to go beyond the constraint
 # lenght, causing a catastrophic decode failure.
+
+# %% [markdown]
+# # References
+#
+# 1) IEEE Std 802.11a-1999
+# 2) <http://www.comlab.hut.fi/opetus/333/2004slides/topic16.pdf>
+# 3) <https://csg.csail.mit.edu/6.884/projects/group1-report.pdf>
+# 4) <https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/f398fa4a366439301b3d17e45e028952_MIT6_02F12_lec07.pdf>
+# 5) <https://openofdm.readthedocs.io/en/latest/_downloads/vtc04_freq_offset.pdf>
+# 6) <https://web.mit.edu/6.02/www/s2012/handouts/8.pdf>
