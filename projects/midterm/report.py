@@ -462,3 +462,10 @@ plt.legend(rate, title="Rate")
 plt.xlabel("SNR [dB]")
 plt.ylabel("BER")
 plt.show()
+
+# %% [markdown]
+# **NOTE:** for $R = 3/4$ rate codes, the BER reaches an asymptote
+# around $10^{-2.5}$ which I cannot explain! My best guess is that my
+# Viterbi implementation based on hard decision coding falls apart on
+# any error encountered causing the code to go beyond the constraint
+# lenght, causing a catastrophic decode failure.
