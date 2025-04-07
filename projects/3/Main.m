@@ -37,3 +37,8 @@ B_RCOS = [
           +0.0052
           +0.0038
          ]';
+
+%% Apply Root Raised Cosine Filter at Receiver
+load Rcvd_Koziej.mat;
+
+r = upfirdn(Rcvd, B_RCOS, 1, OVERSAMPLE);
