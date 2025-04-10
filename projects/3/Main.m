@@ -40,6 +40,7 @@ B_RCOS = [
 WALSH_CHANNELS = 8;
 FRAME_CHIPS = 255;
 PN_TAPS = [8, 7, 6, 1, 0];
+CFO_SAMPLES = 128;
 
 %% Apply Root Raised Cosine Filter at Receiver
 load Rcvd_Koziej.mat;
@@ -50,10 +51,27 @@ r = reshape(r, FRAME_CHIPS, []);
 %% Invert PN Sequence
 pn_seqs = pskmod(pn_sequences(PN_TAPS), 2);
 
-pilot = r(:, 1);
-pn_correlations = pn_seqs .* pilot;
+pilot = sub2ind(size(r), 1:size(r, 1), 1);
+
+pn_correlations = pn_seqs .* r(pilot).';
 [~, initial_condition] = max(abs(sum(pn_correlations)));
 
 pn_sequence = pn_seqs(:, initial_condition);
 
 r = r .* pn_sequence;
+
+%% Remove Carrier Frequency Offset
+get_cfo_samples = @(x) x(end - (CFO_SAMPLES - 1):end);
+
+fine_phi = carrier_frequency_offset(get_cfo_samples(r(pilot)));
+
+sample_index = reshape(1:numel(r), size(r));
+
+fine_cfo = exp(-1j .* fine_phi .* sample_index);
+
+r = r .* fine_cfo;
+
+coarse_phi = mean(angle(conj(pskmod(1, 2)) .* get_cfo_samples(r(pilot))));
+coarse_cfo = exp(-1j * coarse_phi);
+
+r = r .* coarse_cfo;
