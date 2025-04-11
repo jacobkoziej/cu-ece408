@@ -76,6 +76,7 @@ includes = [
 [global]
 excludes = [
   "*.csv",
+  "*.gitattributes",
   "*.gitignore",
   "*.gitmodules",
   "*.lock",
