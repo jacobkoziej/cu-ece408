@@ -45,7 +45,11 @@ CFO_SAMPLES = 128;
 %% Apply Root Raised Cosine Filter at Receiver
 load Rcvd_Koziej.mat;
 
-r = downsample(filter(B_RCOS, 1, Rcvd), OVERSAMPLE);
+r = upfirdn(Rcvd, B_RCOS, 1, OVERSAMPLE);
+
+% remove filter ramp-up
+r = r(ceil(numel(B_RCOS) / OVERSAMPLE):end);
+
 r = reshape(r, FRAME_CHIPS, []);
 
 %% Invert PN Sequence
