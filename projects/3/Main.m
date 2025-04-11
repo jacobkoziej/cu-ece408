@@ -37,9 +37,18 @@ B_RCOS = [
           +0.0052
           +0.0038
          ]';
-WALSH_CHANNELS = 8;
-FRAME_CHIPS = 255;
 PN_TAPS = [8, 7, 6, 1, 0];
+
+FRAME_CHIPS = 255;
+DATA_CHIPS  = 1:(64 * 3);
+
+DATA_FRAME_START = 2;
+DATA_FRAME_END   = 1;
+
+WALSH_CHANNELS = 8;
+PILOT_CHANNEL  = 1;
+DATA_CHANNEL   = 6;
+
 CFO_SAMPLES = 128;
 
 %% Apply Root Raised Cosine Filter at Receiver
@@ -64,7 +73,15 @@ pn_sequence = pn_seqs(:, initial_condition);
 
 r = r .* pn_sequence;
 
-%% Remove Carrier Frequency Offset
+%% Invert Walsh Channel Orthogonal Spreading
+W = hadamard(WALSH_CHANNELS);
+
+data = r(DATA_CHIPS, DATA_FRAME_START:end - DATA_FRAME_END);
+data = reshape(data, WALSH_CHANNELS, []);
+
+decoded = W * data;
+
+%% Determine Carrier Frequency Offset
 get_cfo_samples = @(x) x(end - (CFO_SAMPLES - 1):end);
 
 fine_phi = carrier_frequency_offset(get_cfo_samples(r(pilot)));
@@ -75,7 +92,8 @@ fine_cfo = exp(-1j .* fine_phi .* sample_index);
 
 r = r .* fine_cfo;
 
-coarse_phi = mean(angle(conj(pskmod(1, 2)) .* get_cfo_samples(r(pilot))));
-coarse_cfo = exp(-1j * coarse_phi);
+coarse_phi = mean(angle(get_cfo_samples(r(pilot))));
 
-r = r .* coarse_cfo;
+carrier_frequency_offset = coarse_phi + fine_phi;
+
+display(carrier_frequency_offset);
