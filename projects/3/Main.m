@@ -81,6 +81,9 @@ data = reshape(data, WALSH_CHANNELS, []);
 
 decoded = W * data;
 
+%% Equalize Channels with Pilot
+decoded = decoded ./ decoded(PILOT_CHANNEL, :);
+
 %% Determine Carrier Frequency Offset
 get_cfo_samples = @(x) x(end - (CFO_SAMPLES - 1):end);
 
