@@ -94,18 +94,10 @@ msg = char(msg);
 display(msg);
 
 %% Determine Carrier Frequency Offset
-get_cfo_samples = @(x) x(end - (CFO_SAMPLES - 1):end);
+cfo_samples = r(pilot);
+cfo_samples = cfo_samples(end - (CFO_SAMPLES - 1):end);
 
-fine_phi = carrier_frequency_offset(get_cfo_samples(r(pilot)));
-
-sample_index = reshape(1:numel(r), size(r));
-
-fine_cfo = exp(-1j .* fine_phi .* sample_index);
-
-r = r .* fine_cfo;
-
-coarse_phi = mean(angle(get_cfo_samples(r(pilot))));
-
-carrier_frequency_offset = coarse_phi + fine_phi;
+carrier_frequency_offset = conj(cfo_samples(1:end - 1)) .* cfo_samples(2:end);
+carrier_frequency_offset = mean(angle(carrier_frequency_offset));
 
 display(carrier_frequency_offset);
