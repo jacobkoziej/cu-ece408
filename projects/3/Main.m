@@ -84,6 +84,15 @@ decoded = W * data;
 %% Equalize Channels with Pilot
 decoded = decoded ./ decoded(PILOT_CHANNEL, :);
 
+%% Decode Little Endian Message
+msg = decoded(DATA_CHANNEL, :);
+msg = reshape(msg, 8, []);
+msg = pskdemod(msg, 2);
+msg = bit2int(msg, 8, false);
+msg = char(msg);
+
+display(msg);
+
 %% Determine Carrier Frequency Offset
 get_cfo_samples = @(x) x(end - (CFO_SAMPLES - 1):end);
 
