@@ -100,15 +100,46 @@ ylabel('Magnitude');
 % ends. If our frames were misaligned, we wouldn't see the clear cutoff
 % of where the data in each frame ends.
 
-%% Invert PN Sequence
+%%% Invert PN Sequence
+% Next order of business is inverting the pseudo-noise (PN) sequence
+% applied to our signal. A PN sequence gets applied to our signal to
+% make more secure as the generator polynomial needs to be known at both
+% the transmitter and receiver, but it also prevents spectral smearing
+% from a continuous stream of one symbol. In our case, our generator
+% polynomial is $g = 123_8$, generating an M-sequence of 255. This works
+% out perfectly as our frame size is 255 chips, allowing us to
+% correlated with all 255 different PN sequences to determine the
+% initial state of the linear-feedback shift register at the
+% transmitter. Once the initial state is found, every frame needs to be
+% multiplied by the PN sequence to invert it.
+
+%%
 pn_seqs = pskmod(pn_sequences(PN_TAPS), 2);
 
+%%
+figure;
+imagesc(pskdemod(pn_seqs, 2));
+title('PN Sequences');
+xlabel('Output [n]');
+ylabel('Initial State [s]');
+
+%%
 pilot = sub2ind(size(r), 1:size(r, 1), 1);
 
 pn_correlations = pn_seqs .* r(pilot).';
-[~, initial_condition] = max(abs(sum(pn_correlations)));
+pn_correlations = abs(sum(pn_correlations));
+[~, initial_state] = max(pn_correlations);
 
-pn_sequence = pn_seqs(:, initial_condition);
+%%
+figure;
+stem(pn_correlations);
+text(initial_state + 2, pn_correlations(initial_state) + 2, 'Best State');
+xlim([1, length(pn_correlations)]);
+title('Absolute Sum of PN Correlations');
+xlabel('Initial State [s]');
+
+%%
+pn_sequence = pn_seqs(:, initial_state);
 
 r = r .* pn_sequence;
 
