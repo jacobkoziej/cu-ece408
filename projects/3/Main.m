@@ -148,13 +148,47 @@ pn_sequence = pn_seqs(:, initial_state);
 
 r = r .* pn_sequence;
 
-%% Invert Walsh Channel Orthogonal Spreading
+%%% Invert Walsh Channel Orthogonal Spreading
+% CDMA operates over a spread spectrum constructed with a Hadamard code,
+% also known as a Walsh code. We can construct an 8-th order Hadamard
+% matrix to create an orthogonal basis of codes (channels) which we can
+% utilize bi-directionally to encode and decode data. Once we decode the
+% channels, it is easy to see which channels actually contain signals as
+% their magnitude will be significantly higher than channels without
+% data.
+
+%%
 W = hadamard(WALSH_CHANNELS);
 
+%%
+figure;
+imagesc(W);
+title('8th Order Hadamard Matrix');
+xlabel('Sample [n]');
+ylabel('Channel [c]');
+
+%%
+% select only data chips
 data = r(DATA_CHIPS, DATA_FRAME_START:end - DATA_FRAME_END);
 data = reshape(data, WALSH_CHANNELS, []);
 
+% decode walsh channels
 decoded = W * data;
+
+%%
+figure;
+t = tiledlayout(1, 2);
+
+nexttile;
+imagesc(abs(data));
+title('Encoded Walsh Channels');
+
+nexttile;
+imagesc(abs(decoded));
+title('Decoded Walsh Channels');
+
+xlabel(t, 'Symbol Magnitude [n]');
+ylabel(t, 'Channel [c]');
 
 %% Equalize Channels with Pilot
 decoded = decoded ./ decoded(PILOT_CHANNEL, :);
