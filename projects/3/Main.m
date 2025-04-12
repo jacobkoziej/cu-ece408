@@ -65,12 +65,14 @@ CFO_SAMPLES = 128;
 % RRC filter by the downsample factor and dropping that amount of
 % samples from the start of our receiver buffer following decimation.
 
+%%
 load Rcvd_Koziej.mat;
 
 r = upfirdn(Rcvd, B_RCOS, 1, OVERSAMPLE);
 
 ramp_up_cutoff = ceil(numel(B_RCOS) / OVERSAMPLE);
 
+%%
 figure;
 stem(0:15, abs(r(1:16)));
 xline(ramp_up_cutoff - 1, '--', {'Filter Ramp-up', 'Cutoff'});
@@ -79,12 +81,15 @@ xlabel('Sample [n]');
 ylabel('Magnitude');
 ylim([0, max(abs(r(1:16))) + 0.25]);
 
+%%
+
 % remove filter ramp-up
 r = r(ramp_up_cutoff:end);
 
 % construct frames
 r = reshape(r, FRAME_CHIPS, []);
 
+%%
 figure;
 stem(0:FRAME_CHIPS - 1, abs(r));
 xline(length(DATA_CHIPS), '--', 'Data Chips Cutoff');
