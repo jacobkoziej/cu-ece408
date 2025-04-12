@@ -80,6 +80,7 @@ excludes = [
   "*.gitignore",
   "*.gitmodules",
   "*.lock",
+  "*.mat",
   ".editorconfig",
   "LICENSE.md",
   "miss_hit.cfg",
