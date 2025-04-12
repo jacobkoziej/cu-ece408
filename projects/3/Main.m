@@ -7,7 +7,7 @@ clc;
 clear;
 close all;
 
-%% Signal Parameters
+% signal parameters
 OVERSAMPLE = 4;
 CHIP_RATE = 1e6;
 B_RCOS = [
@@ -51,15 +51,54 @@ DATA_CHANNEL   = 6;
 
 CFO_SAMPLES = 128;
 
-%% Apply Root Raised Cosine Filter at Receiver
+%%% Apply Root-Raised-Cosine Filter at Receiver
+% The transmitter applies a root-raised-cosine (RRC) filter to minimise
+% inter-symbol interference (ISI) since it satisfies the Nyquist ISI
+% criterion. Since this filter is root-raised, we need to apply the same
+% filter on the receiver to complete the matched filter.
+%
+% Since the received filter is oversampled by a factor of 4x, we need to
+% downsample our signal to operate at the correct chip rate. Another
+% thing we must consider is the filter ramp-up time. We need to remove
+% this to avoid misaligning our frames and decoding garbage. We can
+% determine this by applying the floor function to the length of our
+% RRC filter by the downsample factor and dropping that amount of
+% samples from the start of our receiver buffer following decimation.
+
 load Rcvd_Koziej.mat;
 
 r = upfirdn(Rcvd, B_RCOS, 1, OVERSAMPLE);
 
-% remove filter ramp-up
-r = r(ceil(numel(B_RCOS) / OVERSAMPLE):end);
+ramp_up_cutoff = ceil(numel(B_RCOS) / OVERSAMPLE);
 
+figure;
+stem(0:15, abs(r(1:16)));
+xline(ramp_up_cutoff - 1, '--', {'Filter Ramp-up', 'Cutoff'});
+title('RRC Filtered Signal');
+xlabel('Sample [n]');
+ylabel('Magnitude');
+ylim([0, max(abs(r(1:16))) + 0.25]);
+
+% remove filter ramp-up
+r = r(ramp_up_cutoff:end);
+
+% construct frames
 r = reshape(r, FRAME_CHIPS, []);
+
+figure;
+stem(0:FRAME_CHIPS - 1, abs(r));
+xline(length(DATA_CHIPS), '--', 'Data Chips Cutoff');
+title('Superimposed Frames');
+xlabel('Sample [n]');
+ylabel('Magnitude');
+
+%%%
+% After constructing each of our frames, we can superimpose them to make
+% sure that we haven't made a mistake. In our superimposed plot, we can
+% clearly see the CDMA spread spectrum due to our 8-ary Hadamard
+% spreading codes along with a clear distinction of where the chip data
+% ends. If our frames were misaligned, we wouldn't see the clear cutoff
+% of where the data in each frame ends.
 
 %% Invert PN Sequence
 pn_seqs = pskmod(pn_sequences(PN_TAPS), 2);
