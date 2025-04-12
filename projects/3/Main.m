@@ -244,3 +244,28 @@ carrier_frequency_offset = conj(cfo_samples(1:end - 1)) .* cfo_samples(2:end);
 carrier_frequency_offset = mean(angle(carrier_frequency_offset));
 
 display(carrier_frequency_offset);
+
+%%% Message Significance
+% Since the code below is incomprehensible, I'm assuming its the
+% importance of comments. HOWEVER, I'd argue that if the code below had
+% better variable names, extensive comments would not be necessary!
+
+%%
+rng(1);
+
+k = 9;
+n = 100;
+o = floor((k - 1) / 2);
+
+x = [ ...
+     zeros(1, o), ...
+     sin(2 * pi * ((0:(n - 1)) / 100)) + 0.3 * abs(randn(1, 100) > 1.5), ...
+     zeros(1, o)];
+y = median( ...
+           x(repmat((1:k).', 1, n + 2 * o - k + 1) + ...
+             repmat(0:(n + 2 * o - k), k, 1)));
+
+figure;
+stem(x(o + 1:end - o));
+hold on;
+stem(y, 'x');
