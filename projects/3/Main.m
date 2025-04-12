@@ -214,7 +214,7 @@ title('Channels After Equalization');
 xlabel('In-phase');
 ylabel('Quadrature');
 
-%% Decode Little Endian Message
+%%% Decode Little Endian Message
 msg = decoded(DATA_CHANNEL, :);
 msg = reshape(msg, 8, []);
 msg = pskdemod(msg, 2);
@@ -223,7 +223,20 @@ msg = char(msg);
 
 display(msg);
 
-%% Determine Carrier Frequency Offset
+%%% Determine Carrier Frequency Offset
+% We observe a carrier frequency offset (CFO) due to using a non-ideal
+% oscillator when modulating and demodulating at the radio frequency.
+% This non-ideal oscillator introduces a slight frequency offset at our
+% baseband signal which we observe as a constant rotation around the
+% origin of the complex plane. Since we have a constant pilot, we don't
+% need to ever explicitly need to compute the CFO to equalize our
+% signal. However, if we wished to obtain this value, we can do so by
+% taking the average of the angle between conjugate multiplications
+% between known, identical samples. If a CFO is present, we observe a
+% non-zero value. The CFO can then be removed from the signal by
+% applying a constant negative CFO for each sample.
+
+%%
 cfo_samples = r(pilot);
 cfo_samples = cfo_samples(end - (CFO_SAMPLES - 1):end);
 
