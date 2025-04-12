@@ -190,8 +190,29 @@ title('Decoded Walsh Channels');
 xlabel(t, 'Symbol Magnitude [n]');
 ylabel(t, 'Channel [c]');
 
-%% Equalize Channels with Pilot
+%%% Equalize Channels with Pilot
+% Since our CDMA signal encodes a constant pilot in one of the channels,
+% we can utilize it both to remove any phase shift present in our
+% decoded channels along with normalizing the magnitudes. We an achieve
+% this by diving each of our channels by the pilot channel, mapping the
+% pilot to the constant value of 1.
+
+%%
+figure;
+plot(fliplr(decoded.'), 'o');
+title('Channels Before Equalization');
+xlabel('In-phase');
+ylabel('Quadrature');
+
+%%
 decoded = decoded ./ decoded(PILOT_CHANNEL, :);
+
+%%
+figure;
+plot(fliplr(decoded.'), 'o');
+title('Channels After Equalization');
+xlabel('In-phase');
+ylabel('Quadrature');
 
 %% Decode Little Endian Message
 msg = decoded(DATA_CHANNEL, :);
