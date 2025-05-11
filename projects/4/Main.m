@@ -44,3 +44,9 @@ N_message = CN(P_noise, RX_CHANNELS, MESSAGE_SYMBOLS);
 %%% Received Data
 Y_train   = (H * X_train) + N_train;
 Y_message = (H * X_message) + N_message;
+
+%%% Pre-coding
+W_precode = @(H) pinv(H);
+
+X_precode_message = (H * W_precode(H) * X_message) + N_message;
+[ber_precode, ~] = biterr(message_bits, DEMOD_FUNC(X_precode_message, M));
