@@ -19,6 +19,8 @@ TX_CHANNELS      = 2;
 RX_CHANNELS      = 2;
 FADING_VARIANCE  = 1.6;
 SNR              = 8;
+OFDM_FFT_BINS    = 64;
+OFDM_CP_LENGTH   = 16;
 
 %%% Simulation Data
 M = 2^BITS_PER_SYMBOL;
@@ -68,3 +70,32 @@ X_mmse_message = pinv(H_mmse) * Y_message;
 display(ber_precode);
 display(ber_zf);
 display(ber_mmse);
+
+%%% OFDM
+% h = [1, 0.2, 0.4];
+% h = [0.888, 0.233, 0.902, 0.123, 0.334];
+h = [0.227, 0.460, 0.688, 0.460, 0.227];
+
+H = freqz(h, 1, OFDM_FFT_BINS, 'whole');
+
+X_ofdm = ofdmmod(X_message.', OFDM_FFT_BINS, OFDM_CP_LENGTH);
+
+P_ofdm       = mean(abs(X_ofdm).^2, 'all');
+P_ofdm_noise = P_ofdm / (10^(SNR / 10));
+
+N_ofdm = CN(P_ofdm_noise, size(X_ofdm, 1), size(X_ofdm, 2));
+
+Y_ofdm = filter(h, 1, X_ofdm) + N_ofdm;
+
+C_zf   = H;
+C_mmse = (H' * (H * H' + P_noise * eye(OFDM_FFT_BINS))).';
+
+X_ofdm_zf = ofdmdemod(Y_ofdm, OFDM_FFT_BINS, OFDM_CP_LENGTH, C_zf).';
+[~, ber_ofdm_zf] = biterr(message_bits, DEMOD_FUNC(X_ofdm_zf, M));
+
+X_ofdm_mmse = ofdmdemod(Y_ofdm, OFDM_FFT_BINS, OFDM_CP_LENGTH, C_mmse).';
+[~, ber_ofdm_mmse] = biterr(message_bits, DEMOD_FUNC(X_ofdm_mmse, M));
+
+%%% Results
+display(ber_ofdm_zf);
+display(ber_ofdm_mmse);
