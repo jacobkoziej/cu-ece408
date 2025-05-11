@@ -7,7 +7,7 @@ function Y = ofdmmod(X, N, CP)
     symbols  = size(X, 1);
     channels = size(X, 2);
 
-    channel_frames = ceil(log(symbols) / log(N));
+    channel_frames = ceil(symbols / N);
 
     frames = channels * channel_frames;
 
