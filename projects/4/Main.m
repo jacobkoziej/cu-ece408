@@ -50,3 +50,9 @@ W_precode = @(H) pinv(H);
 
 X_precode_message = (H * W_precode(H) * X_message) + N_message;
 [ber_precode, ~] = biterr(message_bits, DEMOD_FUNC(X_precode_message, M));
+
+%%% Zero-forcing
+H_zf = Y_train * pinv(X_train);
+
+X_zf_message = pinv(H_zf) * Y_message;
+[ber_zf, ~] = biterr(message_bits, DEMOD_FUNC(X_zf_message, M));
