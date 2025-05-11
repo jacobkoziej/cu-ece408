@@ -63,3 +63,8 @@ H_mmse = Y_train * X_train' * ...
 
 X_mmse_message = pinv(H_mmse) * Y_message;
 [~, ber_mmse] = biterr(message_bits, DEMOD_FUNC(X_mmse_message, M));
+
+%%% Results
+display(ber_precode);
+display(ber_zf);
+display(ber_mmse);
