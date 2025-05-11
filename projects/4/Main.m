@@ -17,8 +17,8 @@ MOD_FUNC         = @qammod;
 DEMOD_FUNC       = @qamdemod;
 TX_CHANNELS      = 2;
 RX_CHANNELS      = 2;
-FADING_VARIANCE  = 1;
-SNR              = 40;
+FADING_VARIANCE  = 1.6;
+SNR              = 8;
 
 %%% Simulation Data
 M = 2^BITS_PER_SYMBOL;
