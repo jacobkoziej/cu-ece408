@@ -35,7 +35,7 @@ CN = @(variance, M, N) sqrt(variance / 2) .* (randn(M, N) + 1j * randn(M, N));
 H = CN(FADING_VARIANCE, RX_CHANNELS, TX_CHANNELS);
 
 %%% Additive White Gaussian Noise
-P_signal = mean(abs([X_train, X_message]), 'all');
+P_signal = mean(abs([X_train, X_message]).^2, 'all');
 P_noise  = P_signal / (10^(SNR / 10));
 
 N_train   = CN(P_noise, RX_CHANNELS, TRAINING_SYMBOLS);
