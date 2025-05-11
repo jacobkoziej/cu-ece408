@@ -56,3 +56,10 @@ H_zf = Y_train * pinv(X_train);
 
 X_zf_message = pinv(H_zf) * Y_message;
 [ber_zf, ~] = biterr(message_bits, DEMOD_FUNC(X_zf_message, M));
+
+%%% Minimum Mean Square Error
+H_mmse = Y_train * X_train' * ...
+    inv(X_train * X_train' + P_noise * eye(TX_CHANNELS));
+
+X_mmse_message = pinv(H_mmse) * Y_message;
+[ber_mmse, ~] = biterr(message_bits, DEMOD_FUNC(X_mmse_message, M));
