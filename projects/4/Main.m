@@ -49,17 +49,17 @@ Y_message = (H * X_message) + N_message;
 W_precode = @(H) pinv(H);
 
 X_precode_message = (H * W_precode(H) * X_message) + N_message;
-[ber_precode, ~] = biterr(message_bits, DEMOD_FUNC(X_precode_message, M));
+[~, ber_precode] = biterr(message_bits, DEMOD_FUNC(X_precode_message, M));
 
 %%% Zero-forcing
 H_zf = Y_train * pinv(X_train);
 
 X_zf_message = pinv(H_zf) * Y_message;
-[ber_zf, ~] = biterr(message_bits, DEMOD_FUNC(X_zf_message, M));
+[~, ber_zf] = biterr(message_bits, DEMOD_FUNC(X_zf_message, M));
 
 %%% Minimum Mean Square Error
 H_mmse = Y_train * X_train' * ...
     inv(X_train * X_train' + P_noise * eye(TX_CHANNELS));
 
 X_mmse_message = pinv(H_mmse) * Y_message;
-[ber_mmse, ~] = biterr(message_bits, DEMOD_FUNC(X_mmse_message, M));
+[~, ber_mmse] = biterr(message_bits, DEMOD_FUNC(X_mmse_message, M));
