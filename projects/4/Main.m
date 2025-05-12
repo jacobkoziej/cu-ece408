@@ -88,7 +88,7 @@ N_ofdm = CN(P_ofdm_noise, size(X_ofdm, 1), size(X_ofdm, 2));
 Y_ofdm = filter(h, 1, X_ofdm) + N_ofdm;
 
 C_zf   = H;
-C_mmse = (H' * (H * H' + P_noise * eye(OFDM_FFT_BINS))).';
+C_mmse = conj(H) ./ (abs(H).^2 + (P_ofdm_noise / P_ofdm));
 
 X_ofdm_zf = ofdmdemod(Y_ofdm, OFDM_FFT_BINS, OFDM_CP_LENGTH, C_zf).';
 [~, ber_ofdm_zf] = biterr(message_bits, DEMOD_FUNC(X_ofdm_zf, M));
