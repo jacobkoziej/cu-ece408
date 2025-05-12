@@ -193,6 +193,13 @@ display(ber_ofdm_zf);
 display(ber_ofdm_mmse);
 
 %%% MIMO OFDM
+% A nice benefit of MIMO OFDM with frequency-select fading in the time
+% domain is that it becomes flat fading in the frequency domain.
+% Essentially this allows us to apply the flat-fading techniques we
+% applied in the time domain, but in the frequency domain, enabling us
+% to predict the channel without needing to determine its length.
+
+%%
 H = zeros(MIMO_OFDM_TAPS, RX_CHANNELS, TX_CHANNELS);
 for i = 1:MIMO_OFDM_TAPS
     H(i, :, :) = CN(FADING_VARIANCE, RX_CHANNELS, TX_CHANNELS);
