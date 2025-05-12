@@ -78,6 +78,25 @@ X_precode_message = (H * W_precode(H) * X_message) + N_message;
 [~, ber_precode] = biterr(message_bits, DEMOD_FUNC(X_precode_message, M));
 
 %%% Zero-forcing
+% Zero-forcing pushes off the responsibility of modeling the channel
+% onto the receiver, conveniently called channel state information at
+% the receiver (CSIR). The process of zero-forcing tries to find the
+% channel inverse which minimizes the spectral norm: $||y - Hx||$, where
+% $y$ is the received signal, $H$ is the channel, and $x$ is the
+% original signal. The solution to this problem involves the
+% Moore-Penrose inverses of $H$. Although great on initial impression,
+% the drawback of this approach is that it can amplify noise present at
+% the receiver while inverting the channel. Since the noise is
+% independent of the channel, it gets caught in the crossfire and gets
+% in the way of us successfully decoding our signal.
+%
+% Since we usually have no knowledge of the channel, we can sound it
+% using a training sequence. By solving for the Moore-Penrose inverse of
+% the symbols sent at the transmitter, we can retrieve an estimate for
+% the channel with the assumption that the noise found in $y$ is not
+% significant.
+
+%%
 H_zf = Y_train * pinv(X_train);
 
 X_zf_message = pinv(H_zf) * Y_message;
