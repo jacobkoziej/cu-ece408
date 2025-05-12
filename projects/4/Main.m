@@ -21,6 +21,7 @@ FADING_VARIANCE  = 1.6;
 SNR              = 8;
 OFDM_FFT_BINS    = 64;
 OFDM_CP_LENGTH   = 16;
+MIMO_OFDM_TAPS   = 3;
 
 %%% Simulation Data
 M = 2^BITS_PER_SYMBOL;
@@ -99,3 +100,40 @@ X_ofdm_mmse = ofdmdemod(Y_ofdm, OFDM_FFT_BINS, OFDM_CP_LENGTH, C_mmse).';
 %%% Results
 display(ber_ofdm_zf);
 display(ber_ofdm_mmse);
+
+%%% MIMO OFDM
+H = zeros(MIMO_OFDM_TAPS, RX_CHANNELS, TX_CHANNELS);
+for i = 1:MIMO_OFDM_TAPS
+    H(i, :, :) = CN(FADING_VARIANCE, RX_CHANNELS, TX_CHANNELS);
+end
+
+H_freq = zeros(RX_CHANNELS, TX_CHANNELS, OFDM_FFT_BINS);
+
+for i = 1:RX_CHANNELS
+    for j = 1:TX_CHANNELS
+        h = squeeze(H(:, i, j));
+        H_freq(i, j, :) = fftshift(fft(h, OFDM_FFT_BINS));
+    end
+end
+
+X_ofdm = ofdmmod(X_message.', OFDM_FFT_BINS, OFDM_CP_LENGTH).';
+
+H_merge = eye(size(H, 2, 3));
+
+for i = 1:MIMO_OFDM_TAPS
+    H_merge = squeeze(H(i, :, :)) * H_merge;
+end
+
+Y_ofdm = H_merge * X_ofdm + N_ofdm.';
+
+Y_ofdm_eq = Y_ofdm;
+for i = 1:OFDM_FFT_BINS
+    h = squeeze(H_freq(:, :, i));
+    y = squeeze(Y_ofdm(:, OFDM_CP_LENGTH + i));
+    Y_ofdm_eq(:, i) = pinv(h) * y;
+end
+
+X_ofdm_message = ofdmdemod(Y_ofdm_eq.', OFDM_FFT_BINS, OFDM_CP_LENGTH, 1).';
+[~, ber_ofdm_message] = biterr(message_bits, DEMOD_FUNC(X_ofdm_message, M));
+
+display(ber_ofdm_message);
