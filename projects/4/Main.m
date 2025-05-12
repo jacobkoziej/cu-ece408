@@ -40,6 +40,16 @@ X_train   = MOD_FUNC(training_bits, M);
 X_message = MOD_FUNC(message_bits, M);
 
 %%% Flat Fading Channel
+% To simulate a multi-input multi-output (MIMO) flat fading channel, we
+% can create an $M$ by $N$ matrix where $M$ represents the number of
+% outputs and $N$ the number of inputs of the MIMO system. Each of the
+% entries in this matrix are sampled from a complex, zero-mean, Gaussian
+% random variable. Since there is just a single filter coefficient to
+% represent our channel, we can say that our channel fits the flat
+% fading criteria as it merely varies the amplitude and phase of each of
+% our samples, introducing no inter-symbol interference (ISI).
+
+%%
 CN = @(variance, M, N) sqrt(variance / 2) .* (randn(M, N) + 1j * randn(M, N));
 
 H = CN(FADING_VARIANCE, RX_CHANNELS, TX_CHANNELS);
