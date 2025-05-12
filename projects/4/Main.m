@@ -103,6 +103,17 @@ X_zf_message = pinv(H_zf) * Y_message;
 [~, ber_zf] = biterr(message_bits, DEMOD_FUNC(X_zf_message, M));
 
 %%% Minimum Mean Square Error
+% To mitigate amplifying the noise term in our received signal, we can
+% throw in a normalization term that takes into account the relative
+% power of the noise in our signal so that we don't entirely drown out
+% our barely detectable signal. Linear minimum mean square error (MMSE)
+% estimation does just that by increasing the lower bound of our
+% original minimization problem.
+%
+% We can achieve this mathematically by injecting an identity matrix
+% scaled by the variance of the noise into the Moore-Penrose inverse.
+
+%%
 H_mmse = Y_train * X_train' * ...
     inv(X_train * X_train' + P_noise * eye(TX_CHANNELS));
 
