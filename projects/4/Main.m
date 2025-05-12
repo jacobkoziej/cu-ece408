@@ -136,6 +136,29 @@ display(ber_zf);
 display(ber_mmse);
 
 %%% OFDM
+% Orthogonal frequency-division multiplexing (OFDM) allows for us to
+% transmit data simultaneous using multiple sub-carriers unlike
+% traditional single carrier systems. Since sub-carriers are designed to
+% be orthogonal, they do not interfere with each other during
+% transmission. Another benefit of this approach is that large amounts
+% of data is sent over numerous low-rate streams, making the system
+% resilient to burst errors in a channel.
+%
+% The process of encoding a signal with OFDM involves populating
+% discrete Fourier transform (DFT) bins and then taking the inverse DFT.
+% If this signal were sent in this form, our symbols would all
+% experience ISI if our channel has frequency selective fading. To
+% mitigate this, we prepend a cyclic prefix to our signal to make it
+% periodic by prepending a block of the end of our signal. So long as
+% the cyclic prefix is longer than a channel, the linear convolution
+% performed in the time domain turns into a cyclic convolution in the
+% frequency domain, preventing ISI. This then allows us to perform
+% OFDM's famous "single tap" equalization after removing the cyclic
+% prefix and before performing a DFT. We can further improve this by
+% adding pilot tones in the frequency domain which stay constant and
+% allow us to better estimate changes in the channel.
+
+%%
 % h = [1, 0.2, 0.4];
 % h = [0.888, 0.233, 0.902, 0.123, 0.334];
 h = [0.227, 0.460, 0.688, 0.460, 0.227];
