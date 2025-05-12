@@ -66,6 +66,12 @@ Y_train   = (H * X_train) + N_train;
 Y_message = (H * X_message) + N_message;
 
 %%% Pre-coding
+% When pre-coding, the we have channel state information at the
+% transceiver (CSIT). This allows us to invert the channel before
+% transmitting so that by the time our signal reaches the receiver,
+% there should be no fading, only additive white Gaussian noise (AWGN).
+% We can achieve this mathematically with the Moore-Penrose inverse, and
+% perform a matrix multiply with our signal before transmission.
 W_precode = @(H) pinv(H);
 
 X_precode_message = (H * W_precode(H) * X_message) + N_message;
