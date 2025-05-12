@@ -234,4 +234,8 @@ end
 X_ofdm_message = ofdmdemod(Y_ofdm_eq.', OFDM_FFT_BINS, OFDM_CP_LENGTH, 1).';
 [~, ber_ofdm_message] = biterr(message_bits, DEMOD_FUNC(X_ofdm_message, M));
 
+%%% Results
+% MIMO OFDM did not want to cooperate :'(
+
+%%
 display(ber_ofdm_message);
