@@ -24,6 +24,13 @@ OFDM_CP_LENGTH   = 16;
 MIMO_OFDM_TAPS   = 3;
 
 %%% Simulation Data
+% For this simulation, I've decided to generate a short training
+% sequence and a longer sequence of message symbols. Since we are not
+% generating bit error rate (BER) plots, I've opted to have a single
+% run to gauge the effectiveness of the following equalization
+% techniques.
+
+%%
 M = 2^BITS_PER_SYMBOL;
 
 training_bits = randi(M - 1, TX_CHANNELS, TRAINING_SYMBOLS);
