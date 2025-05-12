@@ -184,7 +184,9 @@ X_ofdm_mmse = ofdmdemod(Y_ofdm, OFDM_FFT_BINS, OFDM_CP_LENGTH, C_mmse).';
 [~, ber_ofdm_mmse] = biterr(message_bits, DEMOD_FUNC(X_ofdm_mmse, M));
 
 %%% Results
-% Strangely MMSE performs worse than zero-forcing.
+% Strangely MMSE performs worse than zero-forcing. MMSE not working once
+% again comes around to haunt me from my days in Stochastic Signal
+% Processing with Prof. Keene.
 
 %%
 display(ber_ofdm_zf);
