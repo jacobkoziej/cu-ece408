@@ -76,7 +76,7 @@ display(ber_mmse);
 % h = [0.888, 0.233, 0.902, 0.123, 0.334];
 h = [0.227, 0.460, 0.688, 0.460, 0.227];
 
-H = freqz(h, 1, OFDM_FFT_BINS, 'whole');
+H = fftshift(freqz(h, 1, OFDM_FFT_BINS, 'whole'));
 
 X_ofdm = ofdmmod(X_message.', OFDM_FFT_BINS, OFDM_CP_LENGTH);
 
