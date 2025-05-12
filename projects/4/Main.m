@@ -121,6 +121,16 @@ X_mmse_message = pinv(H_mmse) * Y_message;
 [~, ber_mmse] = biterr(message_bits, DEMOD_FUNC(X_mmse_message, M));
 
 %%% Results
+% From all of these techniques, pre-coding works best since it entirely
+% mitigates the effect of the transmission channel, leaving us with
+% nothing but AWGN. Although it is the most effective of all the three
+% strategies, it is also the most impractical as it assumes knowledge of
+% the channel instead of an estimate. Zero-forcing and MMSE get around
+% this by estimating the channel at the receiver, however, this has the
+% limitation of including AWGN in the estimates, meaning they will only
+% ever approach the effectiveness of pre-coding.
+
+%%
 display(ber_precode);
 display(ber_zf);
 display(ber_mmse);
